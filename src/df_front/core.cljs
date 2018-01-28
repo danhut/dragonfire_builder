@@ -14,7 +14,7 @@
 ; auto discover paths
 
 ;; Data
-(def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6])
+(def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6 :weapon1 :weapon2])
 
 (def feature-map (distinct (map #(zipmap titles %) features)))
 
@@ -54,25 +54,22 @@
                         :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
                         :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :weapon1 nil :weapon2 nil}))
 
-; Utilities
-(defn kw->str [kw]
-  (clojure.string/capitalize (name kw)))
-
-(defn str->kw [str]
-  (keyword (clojure.string/lower-case str)))
-
 (defn filter-features [features slot]
   (let [background (when (= slot :slot1) (filter #(= "Background" (:xp %)) features))
+        fighting (filter #(clojure.string/includes? (:name %) "Fighting Style") features)
+        no-fighting (remove #(clojure.string/includes? (:name %) "Fighting Style") features)
         no-background (remove #(= "Background" (:xp %)) features)
         no-req (filter #(empty? (:requires %)) no-background)
-        archetype (filter #(clojure.string/includes? (:requires %) (:archetype @app-state)) features)
+        archetype (filter #(clojure.string/includes? (:requires %) (:archetype @app-state)) no-fighting)
         path (filter #(clojure.string/includes? (:requires %) (:path @app-state)) features)
-        no-path (remove #(clojure.string/includes? (:requires %) "&") features)
+        no-path (remove #(clojure.string/includes? (:requires %) "&") no-fighting)
         class (filter #(clojure.string/includes? (:requires %) (:class @app-state)) no-path)
         ; hack to have Sun Elf recognised in feature requirements. Also data hacked have preceeding space
         myrace (if (clojure.string/includes? (:race @app-state) " Elf") " Elf" (:race @app-state))
         race (seq (filter #(clojure.string/includes? (:requires %) myrace) features))]
-    (remove #(nil? %) (flatten [race background no-req archetype class path]))))
+    (if (or (= slot :weapon1) (= slot :weapon2))
+      fighting
+      (remove #(nil? %) (flatten [race background no-req archetype class path])))))
 
 (defn update-used-xp []
   (let [slot-costs (reduce + (map #(if (% @app-state) (get-in @app-state [:slot-cost %]) 0) slot-list))
@@ -96,9 +93,6 @@
                         (update-used-xp))}
    (sticker-view fmap)])
 
-(defn update-archetype []
-  (swap! app-state assoc :archetype (-> @app-state :class archetypes)))
-
 (defn class-select []
   [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
                                        (swap! app-state assoc :archetype (get-in archetypes [(:class @app-state)])))}
@@ -116,7 +110,6 @@
      [:option {:key p} p])])
 
 (defn modal-window-button
-  ;([slot] (modal-window-button [slot "Select Feature"]))
   ([slot prompt]
   [:div.col-sm.tv
    {:on-click #(reagent-modals/modal! [:div (for [f (filter-features feature-map slot)] (sticker-select f slot))])}
@@ -127,32 +120,31 @@
 (defn home []
     [:div.container
      [:div-row
-      (class-select) "    " (race-select) "    " (path-select)]
-
+      (class-select) "    " (race-select) "    " (when (-> @app-state :class paths) (path-select))
      [reagent-modals/modal-window]
      ; handle warlock slot0?
      [:div.row
-      [modal-window-button :slot1 "Select Feature"]
-      [modal-window-button :slot2 "Select Feature"]
-      [modal-window-button :slot3 "Select Feature"]]
+      (for [x (range 1 4)]
+        [modal-window-button (keyword (str "slot" x)) "Select Feature"])]
      [:div.row
-      [modal-window-button :slot4 "Select Feature"]
-      [modal-window-button :slot5 "Select Feature"]
-      [modal-window-button :slot6 "Select Feature"]]
-
+      (for [x (range 4 7)]
+        [modal-window-button (keyword (str "slot" x)) "Select Feature"])]
 
      ;need to make these in centre
-     ;(when (= "Martial" (:archetype @app-state))
-     ;  [:div.row
-     ;   [modal-window-button :weapon1 "Select Weapon Style"]
-     ;   [modal-window-button :weapon2 "Select Secondary Weapon"]])
+     (when (= "Martial" (:archetype @app-state))
+       [:div.row
+        [modal-window-button :weapon1 "Select Fighting Style"]
+        [modal-window-button :weapon2 "Select Second Fighting Style"]])
 
      [:div-row
       ;[:div.display "XP Available: " (:xp-earned @app-state)]
       [:div.display "XP on Features: " (:xp-features @app-state)]
       [:div.display "XP on Slots: " (:xp-slots @app-state)]
-      [:div.display "Total XP Used: " (:xp-used @app-state)]  ;if xp used bigger than avail style to red]])
-      ]])
+      [:div.display "Total XP Used: " (:xp-used @app-state)]  ;if xp used bigger than avail style to red]])]
+     ]
+     [:br] [:br] [:div.foot
+      "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
+      Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]]])
 
 (defn mount-root []
   (r/render [home] (.getElementById js/document "app")))

@@ -1,7 +1,7 @@
 body {
   font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
   margin: 0 auto;
-  padding-top: 72px;
+  padding-top: 10px;
   -webkit-font-smoothing: antialiased;
   font-size: 12px;
   color: #333;
@@ -74,7 +74,7 @@ a:hover {
  width: 450px;
  height: 150px;
  left: 25px;
- margin: 20px 0;
+ margin: 0px 0;
  background: #E3DEDA;
  border-style: double;
  border-top-left-radius: 100%50px;
@@ -83,5 +83,10 @@ a:hover {
  border-bottom-right-radius: 100%30px;
  color: black;
  text-align: center;
+}
+
+.foot {
+  color: white;
+  font-size 8;
 }
 
