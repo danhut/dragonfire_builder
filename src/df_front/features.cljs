@@ -350,3 +350,34 @@
    ["Dark One's Own Luck","40","Warlock Class & Patron (Fiend)","When making a Skill Check, you may reveal a card from the bottom of your deck. (Place that card on top of the deck instead of burying it.)","1","Heroes of Sword Coast","52"  ],
    ["Fiendish Resilience","60","Warlock Class & Patron (Fiend)","All BLACK encounters deal -1 damage to you.","1","Heroes of Sword Coast","52"  ],
    ["Hurl Through Hell","100","Warlock Class & Patron (Fiend)","Once per game: Choose an encounter. Play the top three cards from the Market discard on it, ignoring all requirements.","1","Heroes of Sword Coast","52"  ]])
+
+;; Data
+(def feature-map (distinct (map #(dissoc (zipmap titles %) :sticker) features)))
+
+(def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6 :weapon1 :weapon2
+                :invocation1 :invocation2 :invocation3 :invocation4])
+
+(def archetypes {"Fighter" "Martial"
+                 "Paladin" "Martial"
+                 "Cleric" "Devotion"
+                 "Druid" "Devotion"
+                 "Wizard" "Arcane"
+                 "Warlock" "Arcane"
+                 "Bard" "Deception"
+                 "Rogue" "Deception"
+                 "Ranger" "Martial"})
+
+(def classes (keys archetypes))
+
+(def races
+  (sort ["Shield Dwarf" "Lightfoot Halfling" "Tiefling" "Moon Elf" "Wood Elf" "Rock Gnome" "Half-Orc"
+         "Gold Dwarf" "Tiefling" "Sun Elf" "Human" "Forest Gnome" "Wood Elf" "Half-Elf"]))
+
+(def paths {"Fighter" ["Non-specialised" "Champion" "Eldritch Knight"]
+            "Rogue" ["Non-specialised" "Arcane Trickster" "Thief"]
+            "Wizard" ["Non-specialised" "Conjuration (Savant)" "Evocation (Savant)"]
+            "Cleric" ["Non-specialised" "Life Domain" "War Domain"]
+            "Druid" ["Non-specialised" "Circle of the Land" "Circle of the Moon"]
+            "Ranger" ["Non-specialised" "Hunter" "Beastmaster"]
+            "Bard" ["Non-specialised" "College of Lore" "College of Valor"]
+            "Warlock" ["Non-specialised" "Patron (Fey)" "Patron (Fiend)"]})

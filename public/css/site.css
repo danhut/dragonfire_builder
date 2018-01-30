@@ -7,6 +7,8 @@ body {
   color: #333;
   line-height: 1.5em;
   background-image: url("http://dragonfirethegame.com/wp-content/uploads/2017/04/hero-dragonfire2-1.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 h1, h2, h3 {

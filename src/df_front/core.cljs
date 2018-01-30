@@ -1,77 +1,62 @@
 (ns df-front.core
     (:require
       [reagent.core :as r]
+      [clojure.string :as s]
       [reagent-modals.modals :as reagent-modals]
-      [df-front.features :refer [features titles]]))
-
-;; TODO
-; full class banner import
-; input of available xp
-; handle weaponstyles - dont use feature slot
-; secondary archtype for 2p/3p - is this aplpicable to skills?
-; add a filter option if you spend too much xp
-; fix css for model xp
-; auto discover paths
-
-;; Data
-(def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6 :weapon1 :weapon2])
-
-(def feature-map (distinct (map #(zipmap titles %) features)))
-
-(def archetypes {"Fighter" "Martial"
-                 "Paladin" "Martial"
-                 "Cleric" "Devotion"
-                 "Druid" "Devotion"
-                 "Wizard" "Arcane"
-                 "Warlock" "Arcane"
-                 "Bard" "Deception"
-                 "Rogue" "Deception"
-                 "Ranger" "Martial"})
-
-(def classes (keys archetypes))
-
-(def races
-  (sort ["Shield Dwarf" "Lightfoot Halfling" "Tiefling" "Moon Elf" "Wood Elf" "Rock Gnome"
-         "Gold Dwarf" "Tiefling" "Sun Elf" "Human" "Forest Gnome" "Wood Elf" "Half-Elf"]))
-
-(def paths {"Fighter" ["Non-specialised" "Champion" "Eldritch Knight"]
-            "Rogue" ["Non-specialised" "Arcane Trickster" "Thief"]
-            "Wizard" ["Non-specialised" "Conjuration (Savant)" "Evocation (Savant)"]
-            "Cleric" ["Non-specialised" "Life Domain" "War Domain"]
-            "Druid" ["Non-specialised" "Circle of the Land" "Circle of the Moon"]
-            "Ranger" ["Non-specialised" "Hunter" "Beastmaster"]
-            "Bard" ["Non-specialised" "College of Lore" "College of Valor"]
-            "Warlock" ["Non-specialised" "Patron (Fey)" "Patron (Fiend)"]})
+      [df-front.features :refer [features titles feature-map slot-list archetypes classes races paths]]))
 
 ;; Initialise App Data
-(defonce app-state (r/atom {
-                        ; handle warlock slot0 - check its name and rules
-                        :xp-earned 0 :xp-used 0 :xp-slots 0 :xp-features 0
-                        :class "Fighter"
-                        :archetype "Martial"
-                        :race "Forest Gnome"
-                        :path "Non-specialised"
-                        :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
-                        :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :weapon1 nil :weapon2 nil}))
+(defonce app-state (r/atom {:xp-earned 0 :xp-used 0 :xp-slots 0 :xp-features 0
+                            :class "Fighter"
+                            :archetype "Martial"
+                            :race "Forest Gnome"
+                            :path "Non-specialised"
+                            :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
+                            :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :weapon1 nil :weapon2 nil
+                            :invocation1 nil :invocation2 nil :invocation3 nil :invocation4 nil}))
 
-(defn filter-features [features slot]
-  (let [background (when (= slot :slot1) (filter #(= "Background" (:xp %)) features))
-        fighting (filter #(clojure.string/includes? (:name %) "Fighting Style") features)
-        no-fighting (remove #(clojure.string/includes? (:name %) "Fighting Style") features)
+;; Builder functions
+(defn filter-features
+  "Main filtering function when a feature slot button is pushed"
+  [features slot]
+  (let [existing (keep #((keyword %) @app-state) slot-list)
+        features (into [] (clojure.set/difference (set features) (set existing)))
+        background (when (= slot :slot1) (filter #(= "Background" (:xp %)) features))
         no-background (remove #(= "Background" (:xp %)) features)
+        fighting (filter #(s/includes? (:name %) "Fighting Style") features)
+        extra-slots-only (remove #(or (s/includes? (:name %) "Fighting Style")
+                                      (s/includes? (:name %) "Patron")) features)
+        patron (filter #(s/includes? (:name %) "Patron") features)
+        no-patron (remove #(s/includes? (:name %) "Patron") features)
+        invocations (filter #(s/includes? (:name %) "Invocation ") features)
         no-req (filter #(empty? (:requires %)) no-background)
-        archetype (filter #(clojure.string/includes? (:requires %) (:archetype @app-state)) no-fighting)
-        path (filter #(clojure.string/includes? (:requires %) (:path @app-state)) features)
-        no-path (remove #(clojure.string/includes? (:requires %) "&") no-fighting)
-        class (filter #(clojure.string/includes? (:requires %) (:class @app-state)) no-path)
+        archetype (filter #(s/includes? (:requires %) (str (:archetype @app-state) " Class")) extra-slots-only)
+        path (filter #(s/includes? (:requires %) (:path @app-state)) features)
+        no-path (remove #(s/includes? (:requires %) "&") extra-slots-only)
+        class (filter #(s/includes? (:requires %) (str (:class @app-state) " Class")) no-path)
         ; hack to have Sun Elf recognised in feature requirements. Also data hacked have preceeding space
-        myrace (if (clojure.string/includes? (:race @app-state) " Elf") " Elf" (:race @app-state))
-        race (seq (filter #(clojure.string/includes? (:requires %) myrace) features))]
-    (if (or (= slot :weapon1) (= slot :weapon2))
+        myrace (if (s/includes? (:race @app-state) " Elf") " Elf" (:race @app-state))
+        race (seq (filter #(s/includes? (:requires %) myrace) features))]
+
+    (cond
+      (or (= slot :slot0))
+      patron
+
+      (or (= slot :weapon1) (= slot :weapon2))
       fighting
+
+      (or (= slot :invocation1) (= slot :invocation2) (= slot :invocation3) (= slot :invocation4))
+      invocations
+
+      (= "Warlock" (:class @app-state))
+      (remove #(nil? %) (flatten [race no-req archetype class path]))
+
+      :else
       (remove #(nil? %) (flatten [race background no-req archetype class path])))))
 
-(defn update-used-xp []
+(defn update-used-xp
+  "Updates amount of XP used by the build based on selections"
+  []
   (let [slot-costs (reduce + (map #(if (% @app-state) (get-in @app-state [:slot-cost %]) 0) slot-list))
         feature-costs (reduce + (map #(let [fcost (js/parseInt (get-in @app-state [% :xp]))]
                                         (if (int? fcost) fcost 0)) slot-list))]
@@ -79,20 +64,25 @@
     (swap! app-state assoc :xp-features feature-costs)
     (swap! app-state assoc :xp-used (+ slot-costs feature-costs))))
 
-(defn sticker-view [fmap]
+(defn sticker-view
+  "Shows the data for a given feature sticker"
+  [fmap]
   [:div
    [:div.title (:name fmap)]
    [:div.req (:requires fmap)]
    [:div.description (:description fmap)]
    [:div.xp (:xp fmap) (when-not (= "Background" (:xp fmap)) " XP")]])
 
-(defn sticker-select [fmap slot]
+(defn sticker-select
+  "Builds the view of a given feature sticker on main screen and modal"
+  [fmap slot]
   [:div.tv {:key      (:name fmap)
             :on-click (fn [] (swap! app-state assoc slot fmap)
                         (reagent-modals/close-modal!)
                         (update-used-xp))}
    (sticker-view fmap)])
 
+; Class, race, and specialisation selection buttons
 (defn class-select []
   [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
                                        (swap! app-state assoc :archetype (get-in archetypes [(:class @app-state)])))}
@@ -109,7 +99,16 @@
    (for [p (-> @app-state :class paths)]
      [:option {:key p} p])])
 
+(defn reset-features
+  "Renders a button to reset the build"
+  []
+  [:div
+   [:input {:type "button" :value "Reset Features" :class "btn-primary"
+            :on-click #(do (doseq [slot slot-list] (swap! app-state assoc slot nil))
+                           (update-used-xp))}]])
+
 (defn modal-window-button
+  "Renders the feature slots on screen"
   ([slot prompt]
   [:div.col-sm.tv
    {:on-click #(reagent-modals/modal! [:div (for [f (filter-features feature-map slot)] (sticker-select f slot))])}
@@ -117,34 +116,76 @@
       (sticker-view chosen)
       prompt)]))
 
-(defn home []
-    [:div.container
-     [:div-row
-      (class-select) "    " (race-select) "    " (when (-> @app-state :class paths) (path-select))
-     [reagent-modals/modal-window]
-     ; handle warlock slot0?
+(defn check-feature
+  "Checks if a feature has been selected in the builder (by name)"
+  [feature-name]
+  (seq (filter #(= feature-name (get-in @app-state [% :name])) slot-list)))
+
+(defn show-feature-slots
+  "Build the view of the standard 6 slots on the main screen"
+  [start-slot]
+  (for [row-start [start-slot (+ 3 start-slot)]]
+    [:div.row
+     (for [slot (range row-start (+ 3 row-start))]
+       [modal-window-button (keyword (str "slot" slot)) "Select Feature"])]))
+
+(defn show-fighting-styles
+  "Build martial class free fighting style selection slot"
+  []
+  (when (= "Martial" (:archetype @app-state))
+    [:div.row
+     [modal-window-button :weapon1 "Select Fighting Style"]
+     ; Show second feature window if Additional Style feature has been taken
+     (if (check-feature "Additional Style")
+       [modal-window-button :weapon2 "Select Fighting Style"] [:div.col-sm])
+     [:div.col-sm]]))
+
+(defn show-invocations
+  "Build Warlock invocation free slots if Eldritch Invocation is taken"
+  []
+  (let [slot #(keyword (str "invocation" %))
+        prompt #(str "Select Invocation " %)]
+   (cond
+     (check-feature "Eldritch Invocations")
+     [:div.row
+      (for [x (range 1 3)]
+        [modal-window-button (slot x) (prompt x)])
+      [:div.col-sm]]
+
+     (check-feature "Eldritch Invocations II")
      [:div.row
       (for [x (range 1 4)]
-        [modal-window-button (keyword (str "slot" x)) "Select Feature"])]
-     [:div.row
-      (for [x (range 4 7)]
-        [modal-window-button (keyword (str "slot" x)) "Select Feature"])]
+        [modal-window-button (slot x) (prompt x)])]
 
-     ;need to make these in centre
-     (when (= "Martial" (:archetype @app-state))
-       [:div.row
-        [modal-window-button :weapon1 "Select Fighting Style"]
-        [modal-window-button :weapon2 "Select Second Fighting Style"]])
+     (check-feature "Eldritch Invocations III")
+     [:div
+      (for [y [1 3]]
+        [:div.row
+         (for [x (range y (+ 2 y))]
+           [modal-window-button (slot x) (prompt x)])
+         [:div.col-sm]])])))
 
-     [:div-row
-      ;[:div.display "XP Available: " (:xp-earned @app-state)]
-      [:div.display "XP on Features: " (:xp-features @app-state)]
-      [:div.display "XP on Slots: " (:xp-slots @app-state)]
-      [:div.display "Total XP Used: " (:xp-used @app-state)]  ;if xp used bigger than avail style to red]])]
-     ]
-     [:br] [:br] [:div.foot
-      "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
-      Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]]])
+(defn home
+  "Builds the main view"
+  []
+  [:div.container
+   [:div-row
+    (class-select) "    " (race-select) "    " (when (-> @app-state :class paths) (path-select))]
+
+   [reagent-modals/modal-window]
+
+   (if (= (:class @app-state) "Warlock") (show-feature-slots 0) (show-feature-slots 1))
+   (show-fighting-styles)
+   (show-invocations)
+
+   [:div-row
+    ;[:div.display "XP Available: " (:xp-earned @app-state)]
+    [:div.display "XP on Features: " (:xp-features @app-state)]
+    [:div.display "XP on Slots: " (:xp-slots @app-state)]
+    [:div.display "Total XP Used: " (:xp-used @app-state)]
+    [:div (reset-features)]]
+   [:br] [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
+      Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
 
 (defn mount-root []
   (r/render [home] (.getElementById js/document "app")))
