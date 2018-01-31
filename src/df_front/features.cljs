@@ -306,7 +306,7 @@
    ["Ranger's Companion","35","Ranger Class & Beastmaster","During your turn, reveal the top card of your deck. If it is a Basic card, play it; otherwise discard it.","1","Heroes of Sword Coast","41"  ],
    ["Ranger's Companion II","50","Ranger Class & Beastmaster","During your turn, reveal the top card of your deck. If it is a Basic card, play it; otherwise you may discard it or bury it.","1","Heroes of Sword Coast","41"  ],
    ["Bestial Fury","25","Ranger Class & Beastmaster","Activate Ranger's Companion twice per turn.","1","Heroes of Sword Coast","41"  ],
-   ["Bestial Fury II","50","Ranger Class & Beastmaster","Activate Ranger's Companion twice per turn.","1","Heroes of Sword Coast","41"  ],
+   ["Bestial Fury II","50","Ranger Class & Beastmaster","Activate Ranger’s Companion twice per turn. If you reveal a non-Basic card, deal it’s full damage, but you cannot use it’s text.","1","Heroes of Sword Coast","41"  ],
    ["Bardic Inspiration","10","Bard Class","Discard a Performance card to let another player attempt a Skill Check again.","2","Heroes of Sword Coast","42"  ],
    ["Bardic Inspiration II","50","Bard Class","Discard a Performance card to let another player attempt a Skill Check again or to deal +2 COLORLESS damage.","2","Heroes of Sword Coast","42"  ],
    ["Bardic Inspiration III","100","Bard Class","Discard a Performance card to let another player attempt a Skill Check again, to deal +2 COLORLESS damage, or to draw a card.","2","Heroes of Sword Coast","42"  ],
@@ -352,7 +352,7 @@
    ["Hurl Through Hell","100","Warlock Class & Patron (Fiend)","Once per game: Choose an encounter. Play the top three cards from the Market discard on it, ignoring all requirements.","1","Heroes of Sword Coast","52"  ]])
 
 ;; Data
-(def feature-map (distinct (map #(dissoc (zipmap titles %) :sticker) features)))
+(def feature-map (distinct (map #(dissoc (zipmap titles %) :source :sticker) features)))
 
 (def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6 :weapon1 :weapon2
                 :invocation1 :invocation2 :invocation3 :invocation4])
@@ -381,3 +381,9 @@
             "Ranger" ["Non-specialised" "Hunter" "Beastmaster"]
             "Bard" ["Non-specialised" "College of Lore" "College of Valor"]
             "Warlock" ["Non-specialised" "Patron (Fey)" "Patron (Fiend)"]})
+
+(def bonus-archetypes
+  {"Eldritch Knight" "Arcane"
+   "Arcane Trickster" "Arcane"
+   "War Domain" "Martial"
+   "College of Valor" "Martial"})

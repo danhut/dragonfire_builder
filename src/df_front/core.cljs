@@ -3,12 +3,14 @@
       [reagent.core :as r]
       [clojure.string :as s]
       [reagent-modals.modals :as reagent-modals]
-      [df-front.features :refer [features titles feature-map slot-list archetypes classes races paths]]))
+      [df-front.features :refer [features titles feature-map slot-list archetypes classes races paths
+                                 bonus-archetypes]]))
 
 ;; Initialise App Data
 (defonce app-state (r/atom {:xp-earned 0 :xp-used 0 :xp-slots 0 :xp-features 0
                             :class "Fighter"
                             :archetype "Martial"
+                            :archetype-bonus nil
                             :race "Forest Gnome"
                             :path "Non-specialised"
                             :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
@@ -16,6 +18,18 @@
                             :invocation1 nil :invocation2 nil :invocation3 nil :invocation4 nil}))
 
 ;; Builder functions
+(defn get-paths
+  "Gets list of features that specialise character"
+  []
+  (let [chosen (keep #(:name ((keyword %) @app-state)) slot-list)
+        path-list (distinct (flatten (map #(second %) paths)))]
+    (into [] (clojure.set/intersection (set chosen) (set path-list)))))
+
+(defn get-archetypes
+  "Gets current archetypes for characters"
+  []
+  (remove nil? [(:archetype @app-state) (:archetype-bonus @app-state)]))
+
 (defn filter-features
   "Main filtering function when a feature slot button is pushed"
   [features slot]
@@ -30,8 +44,9 @@
         no-patron (remove #(s/includes? (:name %) "Patron") features)
         invocations (filter #(s/includes? (:name %) "Invocation ") features)
         no-req (filter #(empty? (:requires %)) no-background)
-        archetype (filter #(s/includes? (:requires %) (str (:archetype @app-state) " Class")) extra-slots-only)
-        path (filter #(s/includes? (:requires %) (:path @app-state)) features)
+        archetype (map #(filter (fn [arch] (s/includes? (:requires arch)
+                                                        (str % " Class"))) extra-slots-only) (get-archetypes))
+        path (map #(filter (fn [feature] (s/includes? (:requires feature) %)) features) (get-paths))
         no-path (remove #(s/includes? (:requires %) "&") extra-slots-only)
         class (filter #(s/includes? (:requires %) (str (:class @app-state) " Class")) no-path)
         ; hack to have Sun Elf recognised in feature requirements. Also data hacked have preceeding space
@@ -64,6 +79,20 @@
     (swap! app-state assoc :xp-features feature-costs)
     (swap! app-state assoc :xp-used (+ slot-costs feature-costs))))
 
+(defn check-feature
+  "Checks if a feature has been selected in the builder (by name)"
+  [feature-name]
+  (seq (filter #(= feature-name (get-in @app-state [% :name])) slot-list)))
+
+(defn update-archetypes
+  []
+  "Updates archetype based on applied features"
+  (let [mods (keys bonus-archetypes)]
+    (swap! app-state assoc :archetype-bonus nil)
+    (doseq [fname mods]
+      (when (check-feature fname)
+        (swap! app-state assoc :archetype-bonus (get-in bonus-archetypes [fname]))))))
+
 (defn sticker-view
   "Shows the data for a given feature sticker"
   [fmap]
@@ -79,33 +108,42 @@
   [:div.tv {:key      (:name fmap)
             :on-click (fn [] (swap! app-state assoc slot fmap)
                         (reagent-modals/close-modal!)
-                        (update-used-xp))}
+                        (update-used-xp)
+                        (update-archetypes))}
    (sticker-view fmap)])
 
-; Class, race, and specialisation selection buttons
-(defn class-select []
-  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
-                                       (swap! app-state assoc :archetype (get-in archetypes [(:class @app-state)])))}
-   (for [c classes]
-     [:option {:key c} c])])
+(defn reset-features []
+  (doseq [slot slot-list]
+    (swap! app-state assoc slot nil))
+  (update-used-xp)
+  (update-archetypes))
 
-(defn race-select []
-  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value)))}
-   (for [r races]
-     [:option {:key r} r])])
-
-(defn path-select []
-  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :path (-> e .-target .-value)))}
-   (for [p (-> @app-state :class paths)]
-     [:option {:key p} p])])
-
-(defn reset-features
+(defn reset-feature-btn
   "Renders a button to reset the build"
   []
   [:div
    [:input {:type "button" :value "Reset Features" :class "btn-primary"
-            :on-click #(do (doseq [slot slot-list] (swap! app-state assoc slot nil))
-                           (update-used-xp))}]])
+            :on-click #(reset-features)}]])
+
+; Class and race selection buttons
+(defn class-select []
+  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
+                                       (swap! app-state assoc :archetype (get-in archetypes [(:class @app-state)]))
+                                       (reset-features))}
+   (for [c classes]
+     [:option {:key c} c])])
+
+(defn race-select []
+  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
+                                       (reset-features))}
+   (for [r races]
+     [:option {:key r} r])])
+
+; will be used for druid circle
+(defn path-select []
+  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :path (-> e .-target .-value)))}
+   (for [p (-> @app-state :class paths)]
+     [:option {:key p} p])])
 
 (defn modal-window-button
   "Renders the feature slots on screen"
@@ -115,11 +153,6 @@
     (if-let [chosen (get-in @app-state [slot])]
       (sticker-view chosen)
       prompt)]))
-
-(defn check-feature
-  "Checks if a feature has been selected in the builder (by name)"
-  [feature-name]
-  (seq (filter #(= feature-name (get-in @app-state [% :name])) slot-list)))
 
 (defn show-feature-slots
   "Build the view of the standard 6 slots on the main screen"
@@ -169,8 +202,9 @@
   "Builds the main view"
   []
   [:div.container
-   [:div-row
-    (class-select) "    " (race-select) "    " (when (-> @app-state :class paths) (path-select))]
+   [:div-row (class-select) "    " (race-select)]
+   [:div-row [:h1.display "Archetype: " (s/join ", " (get-archetypes)) [:br]
+              "Specialisations: " (s/join ", " (get-paths))]]
 
    [reagent-modals/modal-window]
 
@@ -183,7 +217,7 @@
     [:div.display "XP on Features: " (:xp-features @app-state)]
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
-    [:div (reset-features)]]
+    [:div (reset-feature-btn)]]
    [:br] [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
       Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
 
