@@ -54,7 +54,7 @@ a:hover {
 
 .description {
   position:absolute;
-  top:54px;
+  top:3.375rem;
   text-align: center;
   font-size: 0.875rem;
 }
@@ -73,10 +73,10 @@ a:hover {
 .tv {
  position: relative;
  opacity: 0.75;
- width: 450px;
- height: 150px;
- left: 25px;
- margin: 0px 0;
+ width: 28.125rem;
+ height: 9.375rem;
+ left: 1.5625rem;
+ margin: 0rem 0;
  background: #E3DEDA;
  border-style: double;
  border-top-left-radius: 100%50px;
@@ -85,6 +85,14 @@ a:hover {
  border-bottom-right-radius: 100%30px;
  color: black;
  text-align: center;
+}
+
+.mod {
+  left: 10.4rem;
+}
+
+.bg {
+  background-color black;
 }
 
 .foot {

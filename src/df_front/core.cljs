@@ -4,7 +4,7 @@
       [clojure.string :as s]
       [reagent-modals.modals :as reagent-modals]
       [df-front.features :refer [features titles feature-map slot-list archetypes classes races paths
-                                 bonus-archetypes]]))
+                                 bonus-archetypes colour-map]]))
 
 ;; Initialise App Data
 (defonce app-state (r/atom {:xp-earned 0 :xp-used 0 :xp-slots 0 :xp-features 0
@@ -12,7 +12,7 @@
                             :archetype "Martial"
                             :archetype-bonus nil
                             :race "Forest Gnome"
-                            :path "Non-specialised"
+                            :path nil
                             :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
                             :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :weapon1 nil :weapon2 nil
                             :invocation1 nil :invocation2 nil :invocation3 nil :invocation4 nil}))
@@ -85,8 +85,8 @@
   (seq (filter #(= feature-name (get-in @app-state [% :name])) slot-list)))
 
 (defn update-archetypes
-  []
   "Updates archetype based on applied features"
+  []
   (let [mods (keys bonus-archetypes)]
     (swap! app-state assoc :archetype-bonus nil)
     (doseq [fname mods]
@@ -95,22 +95,24 @@
 
 (defn sticker-view
   "Shows the data for a given feature sticker"
-  [fmap]
+  ([fmap] (sticker-view fmap nil))
+  ([fmap style]
+  (let [fname (s/replace (:name fmap) "Fighting Style" "")]
   [:div
-   [:div.title (:name fmap)]
+   [:div.title fname]
    [:div.req (:requires fmap)]
    [:div.description (:description fmap)]
-   [:div.xp (:xp fmap) (when-not (= "Background" (:xp fmap)) " XP")]])
+   [(keyword (str "div.xp" style)) (:xp fmap) (when-not (= "Background" (:xp fmap)) " XP")]])))
 
 (defn sticker-select
-  "Builds the view of a given feature sticker on main screen and modal"
+  "Builds the view of a given feature sticker on modal"
   [fmap slot]
   [:div.tv {:key      (:name fmap)
             :on-click (fn [] (swap! app-state assoc slot fmap)
                         (reagent-modals/close-modal!)
                         (update-used-xp)
                         (update-archetypes))}
-   (sticker-view fmap)])
+   (sticker-view fmap ".mod")])
 
 (defn reset-features []
   (doseq [slot slot-list]
@@ -218,7 +220,7 @@
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
     [:div (reset-feature-btn)]]
-   [:br] [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
+   [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
       Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
 
 (defn mount-root []

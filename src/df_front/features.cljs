@@ -82,7 +82,7 @@
    ["Stroke of Luck","100","Rogue Class","Deal damage from Deception cards anywhere on the damage track.","1","Base",""  ],
    ["Extra Attack","30","Martial Class","When you defeat an encounter matching your Class Type, gain SWORD ICON.","2","Base",""  ],
    ["Extra Attack II","60","Martial Class","When you defeat any encounter, gain SWORD ICON.","2","Base",""  ],
-   ["Extra Attack III","100","Fighter Class","When you defeat any encounter, gain SWORD ICONSWORD ICON.","1","Base",""  ],
+   ["Extra Attack III","100","Fighter Class","When you defeat any encounter, gain SWORD ICON SWORD ICON.","1","Base",""  ],
    ["Indomitable","100","Fighter Class","When you succeed at a Skill Check, draw the revealed card.","1","Base",""  ],
    ["Champion","20","Fighter Class","Equipment Pack: You must add one BLACK card and remove one card of any type.","1","Base",""  ],
    ["Improved Critical","10","Fighter Class & Champion","During your turn, if you clear two or more BLACK levels against the same encounter, deal +BLACK.","1","Base",""  ],
@@ -367,23 +367,78 @@
                  "Rogue" "Deception"
                  "Ranger" "Martial"})
 
+(def colour-map  {"Martial" "Black"
+                  "Devotion" "DarkGreen"
+                  "Arcane" "MediumBlue"
+                  "Deception" "DarkGreen"})
+
 (def classes (keys archetypes))
 
 (def races
   (sort ["Shield Dwarf" "Lightfoot Halfling" "Tiefling" "Moon Elf" "Wood Elf" "Rock Gnome" "Half-Orc"
          "Gold Dwarf" "Tiefling" "Sun Elf" "Human" "Forest Gnome" "Wood Elf" "Half-Elf"]))
 
-(def paths {"Fighter" ["Non-specialised" "Champion" "Eldritch Knight"]
-            "Rogue" ["Non-specialised" "Arcane Trickster" "Thief"]
-            "Wizard" ["Non-specialised" "Conjuration (Savant)" "Evocation (Savant)"]
-            "Cleric" ["Non-specialised" "Life Domain" "War Domain"]
-            "Druid" ["Non-specialised" "Circle of the Land" "Circle of the Moon"]
-            "Ranger" ["Non-specialised" "Hunter" "Beastmaster"]
-            "Bard" ["Non-specialised" "College of Lore" "College of Valor"]
-            "Warlock" ["Non-specialised" "Patron (Fey)" "Patron (Fiend)"]})
+(def paths {"Fighter" ["Champion" "Eldritch Knight"]
+            "Rogue" ["Arcane Trickster" "Thief"]
+            "Wizard" ["Conjuration (Savant)" "Evocation (Savant)"]
+            "Cleric" ["Life Domain" "War Domain"]
+            "Druid" ["Circle of the Land" "Circle of the Moon"]
+            "Ranger" ["Hunter" "Beastmaster"]
+            "Bard" ["College of Lore" "College of Valor"]
+            "Warlock" ["Patron (Fey)" "Patron (Fiend)"]})
 
 (def bonus-archetypes
   {"Eldritch Knight" "Arcane"
    "Arcane Trickster" "Arcane"
    "War Domain" "Martial"
    "College of Valor" "Martial"})
+
+(def char-titles
+  [:role,:class,:race,:starting-cards,:starting-money,:health,:devotion-equip-pack,:martial-equip-pack,
+   :arcane-equip-pack,:deception-equip-pack,:extra,:special,:weapon-limit,:armor-limit,:shield-limit,
+   :misc-limit,:source,:feature,:count])
+
+(def characters
+  [["Martial","Fighter","Human",3,2,10,1,4,1,1,"","",4,"1","1",3,"Base","","x2"  ],
+   ["Martial","Fighter","Sun Elf",5,2,8,1,4,2,1,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",4,"1","1",3,"Base","",""  ],
+   ["Martial","Fighter","Half-Orc",4,2,10,1,5,1,1,"","Relentless Endurance: When Stunned, do not discard hand.",4,"1","1",3,"Base","",""  ],
+   ["Arcane","Wizard","Human",4,4,6,1,1,4,1,"","",2,"1, Arcane Armor Only","0",6,"Base","","x2"  ],
+   ["Arcane","Wizard","Shield Dwarf",3,6,7,1,2,4,1,"","",2,"1, Arcane Armor Only","0",6,"Base","",""  ],
+   ["Arcane","Wizard","Sun Elf",6,3,5,1,1,5,1,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",2,"1, Arcane Armor Only","0",6,"Base","",""  ],
+   ["Devotion","Cleric","Human",4,3,8,4,1,1,1,"","",3,"1","1",4,"Base","","x2"  ],
+   ["Devotion","Cleric","Half-Orc",4,3,9,4,2,1,1,"","Relentless Endurance: When Stunned, do not discard hand.",3,"1, Devotion and Martial Armor Only","1",4,"Base","",""  ],
+   ["Devotion","Cleric","Shield Dwarf",4,4,9,4,2,1,1,"","",3,"1, Devotion and Martial Armor Only","1",4,"Base","",""  ],
+   ["Deception","Rogue","Human",2,5,8,1,1,1,4,"","",3,"1, Any Light Armor","1, Deception Shield Only",4,"Base","","x2"  ],
+   ["Deception","Rogue","Half-Orc",2,5,9,1,2,1,4,"","Relentless Endurance: When Stunned, do not discard hand.",3,"1, Any Light Armor","1, Deception Shield Only",4,"Base","",""  ],
+   ["Deception","Rogue","Half-Elf",3,4,8,1,1,1,4,"","",3,"1, Any Light Armor","1, Deception Shield Only",4,"Base","",""  ],
+   ["Martial","Fighter","Shield Dwarf",4,3,10,2,4,1,1,"","",4,"1","1",3,"Heroes of Sword Coast","",""  ],
+   ["Martial","Fighter","Half-Elf",3,2,9,1,3,1,2,"","Versatility (Add 1 Market Slot)",4,"1","1",3,"Heroes of Sword Coast","",""  ],
+   ["Martial","Fighter","Forest Gnome",4,1,8,2,3,2,1,"Color Spray","",4,"1","1",3,"Heroes of Sword Coast","",""  ],
+   ["Martial","Fighter","Wood Elf",4,3,8,1,4,1,2,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",4,"1","1",3,"Heroes of Sword Coast","",""  ],
+   ["Martial","Ranger","Human",3,4,8,2,3,1,1,"","",3,"1","1",4,"Heroes of Sword Coast","","x2"  ],
+   ["Martial","Ranger","Tiefling",3,5,8,2,3,1,2,"","Infernal Legacy [Level 3]: Once per scene, upon taking damage, discard Arcane to apply 1 level of damage to that encounter.",3,"1","1",4,"Heroes of Sword Coast","",""  ],
+   ["Martial","Ranger","Lightfoot Halfling",3,4,5,2,3,0,1,"2 Affable","Lucky: When you fail a Skill Check, you may reshuffle your draw pile and check again. Nimbleness: Choose one encounter attacking you during the first round of a Scene: it does no damage.",3,"1","1",4,"Heroes of Sword Coast","",""  ],
+   ["Deception","Rogue","Moon Elf",4,4,7,1,1,2,4,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",3,"1","1",4,"Heroes of Sword Coast","",""  ],
+   ["Deception","Rogue","Shield Dwarf",3,5,9,1,2,1,4,"","",3,"1, Any Light Armor","1, Deception Shield Only",4,"Heroes of Sword Coast","",""  ],
+   ["Deception","Rogue","Lightfoot Halfling",3,4,5,0,1,1,4,"2 Affable","Lucky: When you fail a Skill Check, you may reshuffle your draw pile and check again. Nimbleness: Choose one encounter attacking you during the first round of a Scene: it does no damage.",3,"1, Any Light Armor","1, Deception Shield Only",4,"Heroes of Sword Coast","",""  ],
+   ["Deception","Rogue","Tiefling",3,5,8,1,1,1,5,"","Infernal Legacy [Level 3]: Once per scene, upon taking damage, discard Arcane to apply 1 level of damage to that encounter.",3,"1, Any Light Armor","1, Deception Shield Only",4,"Heroes of Sword Coast","",""  ],
+   ["Deception","Bard","Human",3,3,8,1,1,1,3,"Performance","",2,"1, Any Light Armor","1, Deception Shield Only",4,"Heroes of Sword Coast","","x2"  ],
+   ["Deception","Bard","Moon Elf",5,2,7,1,1,2,3,"Performance","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",2,"1, Any Light Armor","1, Deception Shield Only",4,"Heroes of Sword Coast","",""  ],
+   ["Deception","Bard","Rock Gnome",3,4,7,1,1,1,3,"Performance, Tinker","",2,"1, Any Light Armor","1, Deception Shield Only",4,"Heroes of Sword Coast","",""  ],
+   ["Arcane","Wizard","Half-Elf",4,3,6,0,1,4,2,"","Versatility (Add 1 Market Slot)",2,"1, Arcane Armor Only","0",6,"Heroes of Sword Coast","",""  ],
+   ["Arcane","Wizard","Half-Orc",4,4,7,1,2,4,1,"","Relentless Endurance: When Stunned, do not discard hand.",2,"1, Arcane Armor Only","0",6,"Heroes of Sword Coast","",""  ],
+   ["Arcane","Wizard","Wood Elf",5,4,5,1,1,4,2,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",2,"1, Arcane Armor Only","0",6,"Heroes of Sword Coast","",""  ],
+   ["Arcane","Wizard","Rock Gnome",4,5,5,1,1,4,1,"Tinker","",2,"1, Arcane Armor Only","0",6,"Heroes of Sword Coast","",""  ],
+   ["Arcane","Warlock","Human",2,4,8,2,1,3,1,"","Researcher: Once per game, replace one existing Market card with a card from the Market Deck discard.",3,"1, Any Light Armor","0",5,"Heroes of Sword Coast","Your first Feature purchase must be a Patron, which can never change. This slot costs 0 XP.","x2"  ],
+   ["Arcane","Warlock","Tiefling",3,4,8,2,0,4,2,"","Researcher: Once per game, replace one existing Market card with a card from the Market Deck discard. Infernal Legacy [Level 3]: Once per scene, upon taking damage, discard Arcane to apply 1 level of damage to that encounter.",3,"1, Any Light Armor","0",5,"Heroes of Sword Coast","Your first Feature purchase must be a Patron, which can never change. This slot costs 0 XP.",""  ],
+   ["Arcane","Warlock","Gold Dwarf",2,5,9,3,0,3,2,"","Researcher: Once per game, replace one existing Market card with a card from the Market Deck discard.",3,"1, Any Light Armor","0",5,"Heroes of Sword Coast","Your first Feature purchase must be a Patron, which can never change. This slot costs 0 XP.",""  ],
+   ["Devotion","Cleric","Gold Dwarf",5,3,9,5,1,1,1,"","",3,"1, Devotion and Martial Armor Only","1",4,"Heroes of Sword Coast","",""  ],
+   ["Devotion","Cleric","Tiefling",4,4,8,4,1,1,2,"","Infernal Legacy [Level 3]: Once per scene, upon taking damage, discard Arcane to apply 1 level of damage to that encounter.",3,"1, Devotion and Martial Armor Only","1",4,"Heroes of Sword Coast","",""  ],
+   ["Devotion","Cleric","Half-Orc",4,3,9,4,2,1,1,"","Relentless Endurance: When Stunned, do not discard hand.",3,"1, Devotion and Martial Armor Only","1",4,"Heroes of Sword Coast","",""  ],
+   ["Devotion","Cleric","Sun Elf",4,4,7,4,1,2,1,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",3,"1, Devotion and Martial Armor Only","1",4,"Heroes of Sword Coast","",""  ],
+   ["Devotion","Druid","Human",5,1,8,4,1,1,1,"","",3,"1, Devotion only, Limited to: Wood, Hide or Leather","1, Devotion only, Limited to: Wood, Hide or Leather",4,"Heroes of Sword Coast","","x2"  ],
+   ["Devotion","Druid","Forest Gnome",6,0,6,4,0,2,2,"Color Spray","",3,"1, Devotion only, Limited to: Wood, Hide or Leather","1, Devotion only, Limited to: Wood, Hide or Leather",4,"Heroes of Sword Coast","",""  ],
+   ["Devotion","Druid","Wood Elf",6,2,7,4,1,1,2,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",3,"1, Devotion only, Limited to: Wood, Hide or Leather","1, Devotion only, Limited to: Wood, Hide or Leather",4,"Heroes of Sword Coast","",""  ],
+   ["Devotion","Druid","Half-Elf",5,1,7,3,1,1,2,"","Versatility (Add 1 Market Slot)",3,"1, Devotion only, Limited to: Wood, Hide or Leather","1, Devotion only, Limited to: Wood, Hide or Leather",4,"GenCon Exclusive","",""  ]])
+
+(def character-map (distinct (map #(zipmap char-titles %) characters)))
