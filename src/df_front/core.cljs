@@ -7,7 +7,8 @@
                                  bonus-archetypes colour-map]]))
 
 ;; Initialise App Data
-(defonce app-state (r/atom {:xp-earned 0 :xp-used 0 :xp-slots 0 :xp-features 0
+(defonce app-state (r/atom {:xp-earned nil :xp-used 0 :xp-slots 0 :xp-features 0
+                            :xp-filter false
                             :class "Fighter"
                             :archetype "Martial"
                             :archetype-bonus nil
@@ -29,6 +30,14 @@
   "Gets current archetypes for characters"
   []
   (remove nil? [(:archetype @app-state) (:archetype-bonus @app-state)]))
+
+(defn affordable?
+  "Takes a list of features and removes those which cost too much XP"
+  [features]
+  (if (:xp-filter @app-state)
+    (let [remaining (- (:xp-earned @app-state) (:xp-used @app-state))]
+      (filter #(>= remaining (:xp %)) features))
+    features))
 
 (defn filter-features
   "Main filtering function when a feature slot button is pushed"
@@ -55,16 +64,16 @@
 
     (cond
       (or (= slot :slot0))
-      patron
+      (affordable? patron)
 
       (or (= slot :weapon1) (= slot :weapon2))
-      fighting
+      (affordable? fighting)
 
       (or (= slot :invocation1) (= slot :invocation2) (= slot :invocation3) (= slot :invocation4))
-      invocations
+      (affordable? invocations)
 
       :else
-      (remove #(nil? %) (flatten [race background no-req archetype class path])))))
+      (affordable? (remove #(nil? %) (flatten [race background no-req archetype class path]))))))
 
 (defn update-used-xp
   "Updates amount of XP used by the build based on selections"
@@ -144,12 +153,10 @@
    (for [a (keys colour-map)]
      [:option {:key a} a])])
 
-;<option value="" selected disabled hidden>Choose here</option>
-
 (defn modal-window-button
   "Renders the feature slots on screen"
   ([slot prompt]
-  [:div.col-sm.tv
+  [:div.col-sm.tv ^{:key slot}
    {:on-click #(reagent-modals/modal! [:div {:style {:background-color (-> @app-state :archetype colour-map)}}
                                        (for [f (filter-features feature-map slot)] (sticker-select f slot))])}
     (if-let [chosen (get-in @app-state [slot])]
@@ -160,7 +167,7 @@
   "Build the view of the standard 6 slots on the main screen"
   [start-slot]
   (for [row-start [start-slot (+ 3 start-slot)]]
-    [:div.row
+    [:div.row ^{:key start-slot}
      (for [slot (range row-start (+ 3 row-start))]
        [modal-window-button (keyword (str "slot" slot)) "Select Feature"])]))
 
@@ -200,14 +207,33 @@
            [modal-window-button (slot x) (prompt x)])
          [:div.col-sm]])])))
 
+(defn xp-input [value]
+  [:input {:type "number"
+           :placeholder "Enter XP"
+           :max-length 4
+           :id "xp-filter"
+           :value (-> @app-state :xp-earned)
+           :on-change #(swap! app-state assoc :xp-earned (-> % .-target .-value))}])
+
+(defn get-xp []
+  [:span.display.tab [xp-input (-> @app-state :xp-earned)]])
+
+(defn filter-on-xp? []
+  [:span.display.tab [:label "Filter on XP?" [:input.box
+                                              {:type "checkbox"
+                                               :value true
+                                               :on-change #(if (:xp-filter @app-state)
+                                                             (swap! app-state assoc :xp-filter nil)
+                                                             (swap! app-state assoc :xp-filter (-> % .-target .-value)))}]]])
+
 (defn home
   "Builds the main view"
   []
   [:div.container
    [:div-row (class-select) "    " (race-select) "      "
-    (when (check-feature "Circle of the Land") [:span.display "Circle of the Land: " (arch-select)])]
-   [:div-row [:h1.display "Archetype: " (s/join ", " (get-archetypes)) [:br]
-              "Specialisations: " (s/join ", " (get-paths))]]
+    (when (check-feature "Circle of the Land")
+      [:span.display "Circle of the Land: " (arch-select)])
+    (filter-on-xp?) (when (:xp-filter @app-state) (get-xp))]
 
    [reagent-modals/modal-window]
 
@@ -216,7 +242,6 @@
    (show-invocations)
 
    [:div-row
-    ;[:div.display "XP Available: " (:xp-earned @app-state)]
     [:div.display "XP on Features: " (:xp-features @app-state)]
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
