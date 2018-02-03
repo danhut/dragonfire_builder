@@ -374,10 +374,6 @@
 
 (def classes (keys archetypes))
 
-(def races
-  (sort ["Shield Dwarf" "Lightfoot Halfling" "Tiefling" "Moon Elf" "Wood Elf" "Rock Gnome" "Half-Orc"
-         "Gold Dwarf" "Tiefling" "Sun Elf" "Human" "Forest Gnome" "Wood Elf" "Half-Elf"]))
-
 (def paths {"Fighter" ["Champion" "Eldritch Knight"]
             "Rogue" ["Arcane Trickster" "Thief"]
             "Wizard" ["Conjuration (Savant)" "Evocation (Savant)"]

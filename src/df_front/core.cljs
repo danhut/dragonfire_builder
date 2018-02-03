@@ -3,8 +3,8 @@
       [reagent.core :as r]
       [clojure.string :as s]
       [reagent-modals.modals :as reagent-modals]
-      [df-front.features :refer [features titles feature-map slot-list archetypes classes races paths
-                                 bonus-archetypes colour-map]]))
+      [df-front.features :refer [features titles feature-map slot-list archetypes classes paths
+                                 bonus-archetypes colour-map char-titles characters character-map]]))
 
 ;; Initialise App Data
 (defonce app-state (r/atom {:xp-earned nil :xp-used 0 :xp-slots 0 :xp-features 0
@@ -134,6 +134,11 @@
             :on-click #(reset-features)}]])
 
 ; Class and race selection buttons
+(defn get-races
+  "Gets the valid races for the class choice"
+  [class]
+  (map :race (filter #(= class (:class %)) character-map)))
+
 (defn class-select []
   [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
                                        (swap! app-state assoc :archetype (get-in archetypes [(:class @app-state)]))
@@ -144,7 +149,7 @@
 (defn race-select []
   [:select {:name "race" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
                                        (reset-features))}
-   (for [r races]
+   (for [r (-> @app-state :class get-races)]
      [:option {:key r} r])])
 
 (defn arch-select []
