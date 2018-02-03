@@ -63,9 +63,6 @@
       (or (= slot :invocation1) (= slot :invocation2) (= slot :invocation3) (= slot :invocation4))
       invocations
 
-      (= "Warlock" (:class @app-state))
-      (remove #(nil? %) (flatten [race no-req archetype class path]))
-
       :else
       (remove #(nil? %) (flatten [race background no-req archetype class path])))))
 
@@ -136,22 +133,25 @@
      [:option {:key c} c])])
 
 (defn race-select []
-  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
+  [:select {:name "race" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
                                        (reset-features))}
    (for [r races]
      [:option {:key r} r])])
 
-; will be used for druid circle
-(defn path-select []
-  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :path (-> e .-target .-value)))}
-   (for [p (-> @app-state :class paths)]
-     [:option {:key p} p])])
+(defn arch-select []
+  [:select {:name "arch" :on-change (fn [e] (swap! app-state assoc :archetype-bonus (-> e .-target .-value)))}
+   [:option {:key 0 :selected true :disabled true :hidden true} "Choose One"]
+   (for [a (keys colour-map)]
+     [:option {:key a} a])])
+
+;<option value="" selected disabled hidden>Choose here</option>
 
 (defn modal-window-button
   "Renders the feature slots on screen"
   ([slot prompt]
   [:div.col-sm.tv
-   {:on-click #(reagent-modals/modal! [:div (for [f (filter-features feature-map slot)] (sticker-select f slot))])}
+   {:on-click #(reagent-modals/modal! [:div {:style {:background-color (-> @app-state :archetype colour-map)}}
+                                       (for [f (filter-features feature-map slot)] (sticker-select f slot))])}
     (if-let [chosen (get-in @app-state [slot])]
       (sticker-view chosen)
       prompt)]))
@@ -204,7 +204,8 @@
   "Builds the main view"
   []
   [:div.container
-   [:div-row (class-select) "    " (race-select)]
+   [:div-row (class-select) "    " (race-select) "      "
+    (when (check-feature "Circle of the Land") [:span.display "Circle of the Land: " (arch-select)])]
    [:div-row [:h1.display "Archetype: " (s/join ", " (get-archetypes)) [:br]
               "Specialisations: " (s/join ", " (get-paths))]]
 
