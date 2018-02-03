@@ -36,7 +36,7 @@
   [features]
   (if (:xp-filter @app-state)
     (let [remaining (- (:xp-earned @app-state) (:xp-used @app-state))]
-      (filter #(>= remaining (:xp %)) features))
+      (filter #(or (= "Background" (:xp %))(>= remaining (:xp %))) features))
     features))
 
 (defn filter-features
