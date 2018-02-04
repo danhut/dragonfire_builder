@@ -1,38 +1,13 @@
 body {
-  font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
   margin: 0 auto;
   padding-top: 1rem;
+  font-family: "Times New Roman", Times, serif;
   -webkit-font-smoothing: antialiased;
   font-size: 0.75rem;
-  color: #333;
   line-height: 1.5rem;
   background-image: url("http://dragonfirethegame.com/wp-content/uploads/2017/04/hero-dragonfire2-1.jpg");
   background-size: cover;
   background-repeat: no-repeat;
-}
-
-h1, h2, h3 {
-  color: white;
-}
-h1 {
-  font-size: 0.875rem;
-}
-
-h2 {
-  font-size: 0.625rem;
-}
-
-h3 {
-  font-size: 0.5rem;
-}
-
-a {
-  text-decoration: none;
-  color: #09f;
-}
-
-a:hover {
-  text-decoration: underline;
 }
 
 .title {
@@ -91,10 +66,6 @@ a:hover {
   left: 10.4rem;
 }
 
-.bg {
-  background-color black;
-}
-
 .foot {
   color: white;
   font-size 8;
@@ -107,4 +78,18 @@ a:hover {
 .box {
   transform: scale(1.5);
   width: 2rem;
+}
+
+@media print {
+  .foot {
+    visibility: hidden;
+  }
+  .filter, .box {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+  }
+  .btn-primary {
+    display: none;
+  }
 }

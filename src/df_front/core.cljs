@@ -1,9 +1,10 @@
 (ns df-front.core
-    (:require
-      [reagent.core :as r]
-      [clojure.string :as s]
-      [reagent-modals.modals :as reagent-modals]
-      [df-front.features :refer [features titles feature-map slot-list archetypes classes paths
+  (:require
+    [reagent.core :as r]
+    [clojure.string :as s]
+    [reagent-modals.modals :as reagent-modals]
+    [cljsjs.clipboard]
+    [df-front.features :refer [features titles feature-map slot-list archetypes classes paths
                                  bonus-archetypes colour-map char-titles characters character-map]]))
 
 ;; Initialise App Data
@@ -15,7 +16,7 @@
                             :race "Forest Gnome"
                             :path nil
                             :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
-                            :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :weapon1 nil :weapon2 nil
+                            :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :fighting1 nil :fighting2 nil
                             :invocation1 nil :invocation2 nil :invocation3 nil :invocation4 nil}))
 
 ;; Builder functions
@@ -66,7 +67,7 @@
       (or (= slot :slot0))
       (affordable? patron)
 
-      (or (= slot :weapon1) (= slot :weapon2))
+      (or (= slot :fighting1) (= slot :fighting2))
       (affordable? fighting)
 
       (or (= slot :invocation1) (= slot :invocation2) (= slot :invocation3) (= slot :invocation4))
@@ -113,8 +114,7 @@
 (defn sticker-select
   "Builds the view of a given feature sticker on modal"
   [fmap slot]
-  [:div.tv {:key      (:name fmap)
-            :on-click (fn [] (swap! app-state assoc slot fmap)
+  [:div.tv {:on-click (fn [] (swap! app-state assoc slot fmap)
                         (reagent-modals/close-modal!)
                         (update-used-xp)
                         (update-archetypes))}
@@ -129,25 +129,74 @@
 (defn reset-feature-btn
   "Renders a button to reset the build"
   []
-  [:div
-   [:input {:type "button" :value "Reset Features" :class "btn-primary"
-            :on-click #(reset-features)}]])
+  [:span [:input {:type "button" :value "Reset Features" :class "btn-primary"
+                  :on-click #(reset-features)}]])
 
-; Class and race selection buttons
+(defn kw->str [kw]
+  (s/capitalize (name kw)))
+
+(defn build-text
+  "Builds a text version of the features"
+  []
+  [:div {:id "build"}
+   (-> @app-state :class) " : " (-> @app-state :race) " : "
+   (-> @app-state :archetype) (when-let [b (-> @app-state :archetype-bonus)] [:span "/" b])
+   [:br][:br]
+
+   "Used XP: " (-> @app-state :xp-used) [:br][:br]
+
+   (for [s slot-list]
+     (when-not (nil? (@app-state s))
+       [:div
+        (kw->str s) " : "
+        (-> @app-state s :name) " : XP - " (-> @app-state s :xp) [:br]
+        (-> @app-state s :description) [:br][:br]]))])
+
+(defn clipboard-button [label target]
+  (let [clipboard-atom (atom nil)]
+    (r/create-class
+      {:display-name "clipboard-button"
+       :component-did-mount
+                     #(let [clipboard (new js/Clipboard (r/dom-node %))]
+                        (reset! clipboard-atom clipboard))
+       :component-will-unmount
+                     #(when-not (nil? @clipboard-atom)
+                        (.destroy @clipboard-atom)
+                        (reset! clipboard-atom nil))
+       :reagent-render (fn [] [:button.clipboard
+                               {:on-click #(.removeAllRanges (.getSelection js/window))
+                                :data-clipboard-target target} label])})))
+
+(defn export-to-text
+  "Renders a popup with the build as text"
+  []
+  [:span.tab [:input {:type "button" :value "Text" :class "btn-primary"
+                      :on-click #(reagent-modals/modal!
+                                   [:div {:style {:color "white"
+                                                  :background-color (-> @app-state :archetype colour-map)}}
+                                    [clipboard-button "Copy to Clipboard" "#build"]
+                                    (build-text)])}]])
+
+(defn print-btn
+  "Renders a button to bring a print dialog"
+  []
+  [:span.tab [:input {:type "button" :value "Print" :class "btn-primary"
+                      :on-click #(js/window.print())}]])
+
 (defn get-races
   "Gets the valid races for the class choice"
   [class]
   (map :race (filter #(= class (:class %)) character-map)))
 
 (defn class-select []
-  [:select {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
+  [:select.filter {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
                                        (swap! app-state assoc :archetype (get-in archetypes [(:class @app-state)]))
                                        (reset-features))}
    (for [c classes]
      [:option {:key c} c])])
 
 (defn race-select []
-  [:select {:name "race" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
+  [:select.filter {:name "race" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
                                        (reset-features))}
    (for [r (-> @app-state :class get-races)]
      [:option {:key r} r])])
@@ -181,10 +230,10 @@
   []
   (when (= "Martial" (:archetype @app-state))
     [:div.row
-     [modal-window-button :weapon1 "Select Fighting Style"]
+     [modal-window-button :fighting1 "Select Fighting Style"]
      ; Show second feature window if Additional Style feature has been taken
      (if (check-feature "Additional Style")
-       [modal-window-button :weapon2 "Select Fighting Style"] [:div.col-sm])
+       [modal-window-button :fighting2 "Select Fighting Style"] [:div.col-sm])
      [:div.col-sm]]))
 
 (defn show-invocations
@@ -229,7 +278,8 @@
                                                :value true
                                                :on-change #(if (:xp-filter @app-state)
                                                              (swap! app-state assoc :xp-filter nil)
-                                                             (swap! app-state assoc :xp-filter (-> % .-target .-value)))}]]])
+                                                             (swap! app-state assoc :xp-filter
+                                                                    (-> % .-target .-value)))}]]])
 
 (defn home
   "Builds the main view"
@@ -250,7 +300,7 @@
     [:div.display "XP on Features: " (:xp-features @app-state)]
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
-    [:div (reset-feature-btn)]]
+    [:div (reset-feature-btn) (print-btn) (export-to-text)]]
    [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
       Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
 

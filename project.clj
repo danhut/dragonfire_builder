@@ -7,7 +7,8 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojars.frozenlock/reagent-modals "0.2.3"]
-                 [reagent "0.7.0"]]
+                 [reagent "0.7.0"]
+                 [cljsjs/clipboard "1.6.1-1"]]
 
   :plugins [[lein-cljsbuild "1.1.5"]
             [lein-figwheel "0.5.14"]]
@@ -33,6 +34,7 @@
                          :output-to "public/js/app.js"
                          :output-dir "public/js/out"
                          :asset-path   "js/out"
+                         :externs ["cljs/clipboard.js"]
                          :source-map true
                          :optimizations :none
                          :pretty-print  true}
@@ -45,6 +47,7 @@
                         {:output-to "public/js/app.js"
                          :output-dir "public/js/release"
                          :asset-path   "js/out"
+                         :externs ["cljs/clipboard.js"]
                          :optimizations :advanced
                          :pretty-print false}}}}
 

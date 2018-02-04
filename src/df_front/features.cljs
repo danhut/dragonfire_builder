@@ -387,25 +387,13 @@
 ;; Data
 (def feature-map (distinct (map #(dissoc (zipmap titles %) :source :sticker) features)))
 
-(def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6 :weapon1 :weapon2
+(def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6 :fighting1 :fighting2
                 :invocation1 :invocation2 :invocation3 :invocation4])
-
-(def archetypes {"Fighter" "Martial"
-                 "Paladin" "Martial"
-                 "Cleric" "Devotion"
-                 "Druid" "Devotion"
-                 "Wizard" "Arcane"
-                 "Warlock" "Arcane"
-                 "Bard" "Deception"
-                 "Rogue" "Deception"
-                 "Ranger" "Martial"})
 
 (def colour-map  {"Martial" "Black"
                   "Devotion" "DarkGreen"
                   "Arcane" "MediumBlue"
                   "Deception" "DarkGreen"})
-
-(def classes (keys archetypes))
 
 (def paths {"Fighter" ["Champion" "Eldritch Knight"]
             "Rogue" ["Arcane Trickster" "Thief"]
@@ -473,4 +461,8 @@
    ["Arcane","Warlock","Moon Elf",3,5,6,2,0,4,2,"","Researcher: Once per game, replace one existing Market card with a card from the Market Deck discard.\nKeen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",3,"1, Any Light Armor","0",5,"Shadows Over Dragonspear","",""  ],
    ["Arcane","Warlock","Lightfoot Halfling",4,4,4,2,0,3,2,"Affable","Nimbleness: Choose one encounter attacking you in the first round of a scene.  It deals no damage.\nResearcher: Once per game, replace one existing Market card with a card from the Market Deck discard.",3,"1, Any Light Armor","0",5,"Shadows Over Dragonspear","",""  ]])
 
-(def character-map (distinct (map #(zipmap char-titles %) characters)))
+(def character-map (->> characters (map #(zipmap char-titles %)) distinct))
+
+(def classes (->> characters (map second) distinct))
+
+(def archetypes (->> character-map (map #(select-keys % [:class :role])) distinct (map vals) flatten (apply hash-map)))
