@@ -416,7 +416,8 @@
    :misc-limit,:source,:feature,:count])
 
 (def characters
-  [["Martial","Fighter","Sun Elf",5,2,8,1,4,2,1,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",4,"1","1",3,"Base","",""  ],
+  [["Martial","Fighter","Human",3,2,10,1,4,1,1,"","",4,"1","1",3,"Base","","x2"  ],
+   ["Martial","Fighter","Sun Elf",5,2,8,1,4,2,1,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",4,"1","1",3,"Base","",""  ],
    ["Martial","Fighter","Half-Orc",4,2,10,1,5,1,1,"","Relentless Endurance: When Stunned, do not discard hand.",4,"1","1",3,"Base","",""  ],
    ["Arcane","Wizard","Human",4,4,6,1,1,4,1,"","",2,"1, Arcane Armor Only","0",6,"Base","","x2"  ],
    ["Arcane","Wizard","Shield Dwarf",3,6,7,1,2,4,1,"","",2,"1, Arcane Armor Only","0",6,"Base","",""  ],
