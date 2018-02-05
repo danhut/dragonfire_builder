@@ -5,7 +5,7 @@ http://dragonfirethegame.com/
 ## Live server
 https://danhut.com/df/index.html
 
-![ScreenShot](https://imgur.com/a/cNfcw)
+![ScreenShot](https://i.imgur.com/Ajtb1Po.jpg)
 
 
 ## Dependencies

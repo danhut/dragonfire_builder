@@ -210,9 +210,9 @@
 (defn modal-window-button
   "Renders the feature slots on screen"
   ([slot prompt]
-  [:div.col-sm.tv ^{:key slot}
-   {:on-click #(reagent-modals/modal! [:div {:style {:background-color (-> @app-state :archetype colour-map)}}
-                                       (for [f (filter-features feature-map slot)] (sticker-select f slot))])}
+  [:div.col-sm.tv
+   {:on-click #(reagent-modals/modal! (into [:div {:style {:background-color (-> @app-state :archetype colour-map)}}]
+                                            (for [f (filter-features feature-map slot)]  (sticker-select f slot))))}
     (if-let [chosen (get-in @app-state [slot])]
       (sticker-view chosen)
       prompt)]))
@@ -220,9 +220,9 @@
 (defn show-feature-slots
   "Build the view of the standard 6 slots on the main screen"
   [start-slot]
-  (for [row-start [start-slot (+ 3 start-slot)]]
-    [:div.row ^{:key start-slot}
-     (for [slot (range row-start (+ 3 row-start))]
+  (for [row-start [start-slot (+ 3 start-slot)]] ^{:key row-start}
+    [:div.row
+     (for [slot (range row-start (+ 3 row-start))] ^{:key slot}
        [modal-window-button (keyword (str "slot" slot)) "Select Feature"])]))
 
 (defn show-fighting-styles
@@ -244,20 +244,20 @@
    (cond
      (check-feature "Eldritch Invocations")
      [:div.row
-      (for [x (range 1 3)]
+      (for [x (range 1 3)] ^{:key x}
         [modal-window-button (slot x) (prompt x)])
       [:div.col-sm]]
 
      (check-feature "Eldritch Invocations II")
      [:div.row
-      (for [x (range 1 4)]
+      (for [x (range 1 4)] ^{:key x}
         [modal-window-button (slot x) (prompt x)])]
 
      (check-feature "Eldritch Invocations III")
      [:div
       (for [y [1 3]]
         [:div.row
-         (for [x (range y (+ 2 y))]
+         (for [x (range y (+ 2 y))] ^{:key x}
            [modal-window-button (slot x) (prompt x)])
          [:div.col-sm]])])))
 
