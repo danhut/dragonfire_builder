@@ -1,6 +1,5 @@
 body {
   margin: 0 auto;
-  padding-top: 1rem;
   font-family: "Times New Roman", Times, serif;
   -webkit-font-smoothing: antialiased;
   font-size: 0.75rem;
@@ -62,13 +61,20 @@ body {
  text-align: center;
 }
 
+.dfnav {
+  height 0.5rem;
+  color: white;
+  font-size: 1rem;
+  background: black;
+}
+
 .mod {
   left: 10.4rem;
 }
 
 .foot {
   color: white;
-  font-size 8;
+  font-size 0.5rem;
 }
 
 .tab {

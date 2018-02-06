@@ -467,3 +467,5 @@
 (def classes (->> characters (map second) distinct))
 
 (def archetypes (->> character-map (map #(select-keys % [:class :role])) distinct (map vals) flatten (apply hash-map)))
+
+(def expansions (->> character-map (map #(:source %)) distinct))

@@ -281,11 +281,24 @@
                                                              (swap! app-state assoc :xp-filter
                                                                     (-> % .-target .-value)))}]]])
 
+(defn nav
+  []
+  [:div.container
+   [:div.dfnav {:class "dfnav"}
+    "Nav"]]
+  )
+
 (defn home
   "Builds the main view"
   []
-  [:div.container
-   [:div-row [class-select] "    " [race-select] "      "
+  [:div
+
+   [nav]
+   [:div.container
+
+
+
+   [:div-row {:id "select"} [class-select] "    " [race-select] "      "
     (when (check-feature "Circle of the Land")
       [:span.display "Circle of the Land: " [arch-select]])
     [filter-on-xp?] (when (:xp-filter @app-state) [get-xp])]
@@ -302,10 +315,14 @@
     [:div.display "Total XP Used: " (:xp-used @app-state)]
     [:div [reset-feature-btn] [print-btn] [export-to-text]]]
    [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
-      Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
+      Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]]])
+
 
 (defn mount-root []
-  (r/render [home] (.getElementById js/document "app")))
+
+  (r/render [home] (.getElementById js/document "app"))
+ ; (r/render [nav] (.getElementById js/document "app"))
+  )
 
 (defn init! []
   (mount-root))

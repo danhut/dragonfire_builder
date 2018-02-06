@@ -8,6 +8,7 @@
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojars.frozenlock/reagent-modals "0.2.3"]
                  [reagent "0.7.0"]
+                 [secretary "1.2.3"]
                  [cljsjs/clipboard "1.6.1-1"]]
 
   :plugins [[lein-cljsbuild "1.1.5"]
