@@ -118,7 +118,7 @@
                         (reagent-modals/close-modal!)
                         (update-used-xp)
                         (update-archetypes))}
-   (sticker-view fmap ".mod")])
+   [sticker-view fmap ".mod"]])
 
 (defn reset-features []
   (doseq [slot slot-list]
@@ -175,7 +175,7 @@
                                    [:div {:style {:color "white"
                                                   :background-color (-> @app-state :archetype colour-map)}}
                                     [clipboard-button "Copy to Clipboard" "#build"]
-                                    (build-text)])}]])
+                                    [build-text]])}]])
 
 (defn print-btn
   "Renders a button to bring a print dialog"
@@ -214,7 +214,7 @@
    {:on-click #(reagent-modals/modal! (into [:div {:style {:background-color (-> @app-state :archetype colour-map)}}]
                                             (for [f (filter-features feature-map slot)]  (sticker-select f slot))))}
     (if-let [chosen (get-in @app-state [slot])]
-      (sticker-view chosen)
+      [sticker-view chosen]
       prompt)]))
 
 (defn show-feature-slots
@@ -285,10 +285,10 @@
   "Builds the main view"
   []
   [:div.container
-   [:div-row (class-select) "    " (race-select) "      "
+   [:div-row [class-select] "    " [race-select] "      "
     (when (check-feature "Circle of the Land")
-      [:span.display "Circle of the Land: " (arch-select)])
-    (filter-on-xp?) (when (:xp-filter @app-state) (get-xp))]
+      [:span.display "Circle of the Land: " [arch-select]])
+    [filter-on-xp?] (when (:xp-filter @app-state) [get-xp])]
 
    [reagent-modals/modal-window]
 
@@ -300,7 +300,7 @@
     [:div.display "XP on Features: " (:xp-features @app-state)]
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
-    [:div (reset-feature-btn) (print-btn) (export-to-text)]]
+    [:div [reset-feature-btn] [print-btn] [export-to-text]]]
    [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
       Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
 
