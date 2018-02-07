@@ -385,7 +385,7 @@
    ["Bestial Fury II","50","Ranger Class & Beastmaster","Activate Ranger's Companion twice per turn.",1,"Chaos In The Trollclaws",3  ]])
 
 ;; Data
-(def feature-map (distinct (map #(dissoc (zipmap titles %) :source :sticker :count) features)))
+(def feature-map (distinct (map #(dissoc (zipmap titles %) :sticker :count) features)))
 
 (def slot-list [:slot0 :slot1 :slot2 :slot3 :slot4 :slot5 :slot6 :fighting1 :fighting2
                 :invocation1 :invocation2 :invocation3 :invocation4])
@@ -468,4 +468,4 @@
 
 (def archetypes (->> character-map (map #(select-keys % [:class :role])) distinct (map vals) flatten (apply hash-map)))
 
-(def expansions (->> character-map (map #(:source %)) distinct))
+(def packs (->> character-map (map #(:source %)) distinct))

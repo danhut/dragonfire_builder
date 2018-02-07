@@ -3,9 +3,13 @@
     [reagent.core :as r]
     [clojure.string :as s]
     [reagent-modals.modals :as reagent-modals]
+    [secretary.core :as secretary :refer-macros [defroute]]
+    [goog.events :as events]
+    [goog.history.EventType :as EventType]
     [cljsjs.clipboard]
     [df-front.features :refer [features titles feature-map slot-list archetypes classes paths
-                                 bonus-archetypes colour-map char-titles characters character-map]]))
+                                 bonus-archetypes colour-map char-titles characters character-map packs]])
+  (:import goog.History))
 
 ;; Initialise App Data
 (defonce app-state (r/atom {:xp-earned nil :xp-used 0 :xp-slots 0 :xp-features 0
@@ -15,6 +19,7 @@
                             :archetype-bonus nil
                             :race "Forest Gnome"
                             :path nil
+                            :packs packs
                             :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
                             :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :fighting1 nil :fighting2 nil
                             :invocation1 nil :invocation2 nil :invocation3 nil :invocation4 nil}))
@@ -43,7 +48,9 @@
 (defn filter-features
   "Main filtering function when a feature slot button is pushed"
   [features slot]
-  (let [existing (keep #((keyword %) @app-state) slot-list)
+  (let [features (filter #(some #{(:source %)} (-> @app-state :packs)) features) ;filter unused packs
+        features (distinct (map #(dissoc % :source) features))  ;remove features in multiple packs
+        existing (keep #((keyword %) @app-state) slot-list)
         features (into [] (clojure.set/difference (set features) (set existing)))
         background (when (= slot :slot1) (filter #(= "Background" (:xp %)) features))
         no-background (remove #(= "Background" (:xp %)) features)
@@ -186,7 +193,8 @@
 (defn get-races
   "Gets the valid races for the class choice"
   [class]
-  (map :race (filter #(= class (:class %)) character-map)))
+  (let [valid-packs (filter #(some #{(:source %)} (-> @app-state :packs)) character-map)]
+    (map :race (filter #(= class (:class %)) valid-packs))))
 
 (defn class-select []
   [:select.filter {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
@@ -221,7 +229,7 @@
   "Build the view of the standard 6 slots on the main screen"
   [start-slot]
   (for [row-start [start-slot (+ 3 start-slot)]] ^{:key row-start}
-    [:div.row
+    [:div.row {:id "dfr"}
      (for [slot (range row-start (+ 3 row-start))] ^{:key slot}
        [modal-window-button (keyword (str "slot" slot)) "Select Feature"])]))
 
@@ -229,7 +237,7 @@
   "Build martial class free fighting style selection slot"
   []
   (when (= "Martial" (:archetype @app-state))
-    [:div.row
+    [:div.row {:id "dfr"}
      [modal-window-button :fighting1 "Select Fighting Style"]
      ; Show second feature window if Additional Style feature has been taken
      (if (check-feature "Additional Style")
@@ -243,20 +251,20 @@
         prompt #(str "Select Invocation " %)]
    (cond
      (check-feature "Eldritch Invocations")
-     [:div.row
+     [:div.row {:id "dfr"}
       (for [x (range 1 3)] ^{:key x}
         [modal-window-button (slot x) (prompt x)])
       [:div.col-sm]]
 
      (check-feature "Eldritch Invocations II")
-     [:div.row
+     [:div.row {:id "dfr"}
       (for [x (range 1 4)] ^{:key x}
         [modal-window-button (slot x) (prompt x)])]
 
      (check-feature "Eldritch Invocations III")
      [:div
       (for [y [1 3]]
-        [:div.row
+        [:div.row {:id "dfr"}
          (for [x (range y (+ 2 y))] ^{:key x}
            [modal-window-button (slot x) (prompt x)])
          [:div.col-sm]])])))
@@ -280,25 +288,20 @@
                                                              (swap! app-state assoc :xp-filter nil)
                                                              (swap! app-state assoc :xp-filter
                                                                     (-> % .-target .-value)))}]]])
-
+; Nav Bar
 (defn nav
   []
-  [:div.container
-   [:div.dfnav {:class "dfnav"}
-    "Nav"]]
-  )
+  [:div [:div.topnav {:class "dfnav"}
+         [:a {:href "#/" :id "navitem"} "Build"] [:span.tab]
+         [:a {:href "#/options" :id "navitem"} "Options"]] [:br][:br]])
 
+; Main screen
 (defn home
   "Builds the main view"
   []
-  [:div
-
+  [:div.container
    [nav]
-   [:div.container
-
-
-
-   [:div-row {:id "select"} [class-select] "    " [race-select] "      "
+   [:div-row {:id "sel"} [class-select] "    " [race-select] "      "
     (when (check-feature "Circle of the Land")
       [:span.display "Circle of the Land: " [arch-select]])
     [filter-on-xp?] (when (:xp-filter @app-state) [get-xp])]
@@ -309,20 +312,55 @@
    (show-fighting-styles)
    (show-invocations)
 
-   [:div-row
+   [:div-row {:id "dfr"}
     [:div.display "XP on Features: " (:xp-features @app-state)]
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
     [:div [reset-feature-btn] [print-btn] [export-to-text]]]
    [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
-      Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]]])
+      Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
 
+; Options Screen
+(defn options []
+  [:div.container
+   [nav]
+   [:div.display {:style {:background-color "rgba(39,56,76,0.82)" :width "20rem"
+                          :padding "1rem" :opacity "20%"}} "Select Packs"
+    (doall (for [pack packs]
+             [:div [:label.display pack [:input.box
+                                         {:type "checkbox" :defaultChecked (if (some #{pack} (-> @app-state :packs)) true false)
+                                          :on-change (fn [] (if (some #{pack} (-> @app-state :packs))
+                                                              (swap! app-state assoc :packs (remove #(= pack %) (-> @app-state :packs)))
+                                                              (swap! app-state assoc :packs (-> @app-state :packs (conj pack)))))}]]]))]])
+
+(defn hook-browser-navigation! []
+  (doto (History.)
+    (events/listen
+      EventType/NAVIGATE
+      (fn [event]
+        (secretary/dispatch! (.-token event))))
+    (.setEnabled true)))
+
+; Routes
+(defn app-routes []
+  (secretary/set-config! :prefix "#")
+  (defroute "/" []
+            (swap! app-state assoc :page :home))
+  (defroute "/options" []
+            (swap! app-state assoc :page :options))
+  (hook-browser-navigation!))
+
+(defmulti current-page #(@app-state :page))
+(defmethod current-page :home []
+  [home])
+(defmethod current-page :options []
+  [options])
+(defmethod current-page :default []
+  [:div ])
 
 (defn mount-root []
-
-  (r/render [home] (.getElementById js/document "app"))
- ; (r/render [nav] (.getElementById js/document "app"))
-  )
+  (app-routes)
+  (r/render [current-page] (.getElementById js/document "app")))
 
 (defn init! []
   (mount-root))

@@ -2,11 +2,13 @@ body {
   margin: 0 auto;
   font-family: "Times New Roman", Times, serif;
   -webkit-font-smoothing: antialiased;
-  font-size: 0.75rem;
   line-height: 1.5rem;
   background-image: url("http://dragonfirethegame.com/wp-content/uploads/2017/04/hero-dragonfire2-1.jpg");
-  background-size: cover;
+  background-position: center center;
   background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  background-color: #464646;
 }
 
 .title {
@@ -44,6 +46,29 @@ body {
   background: black;
 }
 
+#dfr {
+  margin-left: -4.375rem;
+}
+
+#sel {
+  margin-left: -22px;
+}
+
+#navitem {
+  text-decoration: none;
+  color: white;
+  -webkit-transition: all 0.2s ease-in-out;
+  -moz-transition: all 0.2s ease-in-out;
+  -ms-transition: all 0.2s ease-out;
+  -o-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+#navitem:hover {
+  color: #ffa500;
+  text-decoration: none;
+}
+
 .tv {
  position: relative;
  opacity: 0.75;
@@ -61,11 +86,17 @@ body {
  text-align: center;
 }
 
-.dfnav {
-  height 0.5rem;
-  color: white;
+.topnav {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+  color: #999;
   font-size: 1rem;
-  background: black;
+  border-bottom: 0.05rem solid rgba(39,56,76,0.9);
+  background-color: rgba(39,56,76,0.82);
 }
 
 .mod {
