@@ -19,7 +19,8 @@
                             :archetype-bonus nil
                             :race "Forest Gnome"
                             :path nil
-                            :packs packs
+                            :packs (let [pax (js->clj (.getItem (.-localStorage js/window) "packs"))]
+                                     (if (nil? pax) packs (s/split pax #",")))
                             :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
                             :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :fighting1 nil :fighting2 nil
                             :invocation1 nil :invocation2 nil :invocation3 nil :invocation4 nil}))
@@ -206,8 +207,8 @@
 (defn race-select []
   [:select.filter {:name "race" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
                                        (reset-features))}
-   (for [r (-> @app-state :class get-races)]
-     [:option {:key r} r])])
+   (doall (for [r (-> @app-state :class get-races)]
+     [:option {:key r} r]))])
 
 (defn arch-select []
   [:select {:name "arch" :on-change (fn [e] (swap! app-state assoc :archetype-bonus (-> e .-target .-value)))}
@@ -229,7 +230,7 @@
   "Build the view of the standard 6 slots on the main screen"
   [start-slot]
   (for [row-start [start-slot (+ 3 start-slot)]] ^{:key row-start}
-    [:div.row {:id "dfr"}
+    [:div.row
      (for [slot (range row-start (+ 3 row-start))] ^{:key slot}
        [modal-window-button (keyword (str "slot" slot)) "Select Feature"])]))
 
@@ -237,7 +238,7 @@
   "Build martial class free fighting style selection slot"
   []
   (when (= "Martial" (:archetype @app-state))
-    [:div.row {:id "dfr"}
+    [:div.row
      [modal-window-button :fighting1 "Select Fighting Style"]
      ; Show second feature window if Additional Style feature has been taken
      (if (check-feature "Additional Style")
@@ -251,20 +252,20 @@
         prompt #(str "Select Invocation " %)]
    (cond
      (check-feature "Eldritch Invocations")
-     [:div.row {:id "dfr"}
+     [:div.row
       (for [x (range 1 3)] ^{:key x}
         [modal-window-button (slot x) (prompt x)])
       [:div.col-sm]]
 
      (check-feature "Eldritch Invocations II")
-     [:div.row {:id "dfr"}
+     [:div.row
       (for [x (range 1 4)] ^{:key x}
         [modal-window-button (slot x) (prompt x)])]
 
      (check-feature "Eldritch Invocations III")
      [:div
       (for [y [1 3]]
-        [:div.row {:id "dfr"}
+        [:div.row
          (for [x (range y (+ 2 y))] ^{:key x}
            [modal-window-button (slot x) (prompt x)])
          [:div.col-sm]])])))
@@ -301,7 +302,7 @@
   []
   [:div.container
    [nav]
-   [:div-row {:id "sel"} [class-select] "    " [race-select] "      "
+   [:div-row [class-select] "    " [race-select] "      "
     (when (check-feature "Circle of the Land")
       [:span.display "Circle of the Land: " [arch-select]])
     [filter-on-xp?] (when (:xp-filter @app-state) [get-xp])]
@@ -312,7 +313,7 @@
    (show-fighting-styles)
    (show-invocations)
 
-   [:div-row {:id "dfr"}
+   [:div-row
     [:div.display "XP on Features: " (:xp-features @app-state)]
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
@@ -327,11 +328,13 @@
    [:div.display {:style {:background-color "rgba(39,56,76,0.82)" :width "20rem"
                           :padding "1rem" :opacity "20%"}} "Select Packs"
     (doall (for [pack packs]
-             [:div [:label.display pack [:input.box
+             [:div {:key pack} [:label.display pack [:input.box
                                          {:type "checkbox" :defaultChecked (if (some #{pack} (-> @app-state :packs)) true false)
                                           :on-change (fn [] (if (some #{pack} (-> @app-state :packs))
-                                                              (swap! app-state assoc :packs (remove #(= pack %) (-> @app-state :packs)))
-                                                              (swap! app-state assoc :packs (-> @app-state :packs (conj pack)))))}]]]))]])
+                                                              (do (swap! app-state assoc :packs (remove #(= pack %) (-> @app-state :packs)))
+                                                                  (.setItem (.-localStorage js/window) "packs" (-> @app-state :packs clj->js)))
+                                                              (do (swap! app-state assoc :packs (-> @app-state :packs (conj pack)))
+                                                                  (.setItem (.-localStorage js/window) "packs" (-> @app-state :packs clj->js)))))}]]]))]])
 
 (defn hook-browser-navigation! []
   (doto (History.)
