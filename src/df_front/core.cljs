@@ -327,14 +327,15 @@
    [nav]
    [:div.display {:style {:background-color "rgba(39,56,76,0.82)" :width "20rem"
                           :padding "1rem" :opacity "20%"}} "Select Packs"
-    (doall (for [pack packs]
-             [:div {:key pack} [:label.display pack [:input.box
-                                         {:type "checkbox" :defaultChecked (if (some #{pack} (-> @app-state :packs)) true false)
-                                          :on-change (fn [] (if (some #{pack} (-> @app-state :packs))
-                                                              (do (swap! app-state assoc :packs (remove #(= pack %) (-> @app-state :packs)))
-                                                                  (.setItem (.-localStorage js/window) "packs" (-> @app-state :packs clj->js)))
-                                                              (do (swap! app-state assoc :packs (-> @app-state :packs (conj pack)))
-                                                                  (.setItem (.-localStorage js/window) "packs" (-> @app-state :packs clj->js)))))}]]]))]])
+    (let [save (.setItem (.-localStorage js/window) "packs" (-> @app-state :packs clj->js))]
+      (doall (for [pack packs]
+               [:div {:key pack} [:label.display pack [:input.box
+                                                       {:type "checkbox" :defaultChecked (if (some #{pack} (-> @app-state :packs)) true false)
+                                                        :on-change (fn [] (if (some #{pack} (-> @app-state :packs))
+                                                                            (do (swap! app-state assoc :packs (remove #(= pack %) (-> @app-state :packs)))
+                                                                                (save))
+                                                                            (do (swap! app-state assoc :packs (-> @app-state :packs (conj pack)))
+                                                                                (save))))}]]])))]])
 
 (defn hook-browser-navigation! []
   (doto (History.)
