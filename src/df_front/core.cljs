@@ -153,12 +153,12 @@
 
    "Used XP: " (-> @app-state :xp-used) [:br][:br]
 
-   (for [s slot-list]
+   (doall (for [s slot-list]
      (when-not (nil? (@app-state s))
-       [:div
+       [:div {:key s}
         (kw->str s) " : "
         (-> @app-state s :name) " : XP - " (-> @app-state s :xp) [:br]
-        (-> @app-state s :description) [:br][:br]]))])
+        (-> @app-state s :description) [:br][:br]])))])
 
 (defn clipboard-button [label target]
   (let [clipboard-atom (atom nil)]
@@ -229,27 +229,30 @@
 (defn show-feature-slots
   "Build the view of the standard 6 slots on the main screen"
   [start-slot]
-  (for [row-start [start-slot (+ 3 start-slot)]] ^{:key row-start}
-    [:div.row
-     (for [slot (range row-start (+ 3 row-start))] ^{:key slot}
-       [modal-window-button (keyword (str "slot" slot)) "Select Feature"])]))
+  [:div
+    (for [row-start [start-slot (+ 3 start-slot)]] ^{:key row-start}
+      [:div.row
+       (for [slot (range row-start (+ 3 row-start))] ^{:key slot}
+         [modal-window-button (keyword (str "slot" slot)) "Select Feature"])])])
 
 (defn show-fighting-styles
   "Build martial class free fighting style selection slot"
   []
-  (when (= "Martial" (:archetype @app-state))
-    [:div.row
-     [modal-window-button :fighting1 "Select Fighting Style"]
-     ; Show second feature window if Additional Style feature has been taken
-     (if (check-feature "Additional Style")
-       [modal-window-button :fighting2 "Select Fighting Style"] [:div.col-sm])
-     [:div.col-sm]]))
+  [:div
+    (when (= "Martial" (:archetype @app-state))
+      [:div.row
+       [modal-window-button :fighting1 "Select Fighting Style"]
+       ; Show second feature window if Additional Style feature has been taken
+       (if (check-feature "Additional Style")
+         [modal-window-button :fighting2 "Select Fighting Style"] [:div.col-sm])
+       [:div.col-sm]])])
 
 (defn show-invocations
   "Build Warlock invocation free slots if Eldritch Invocation is taken"
   []
   (let [slot #(keyword (str "invocation" %))
         prompt #(str "Select Invocation " %)]
+    [:div
    (cond
      (check-feature "Eldritch Invocations")
      [:div.row
@@ -268,7 +271,7 @@
         [:div.row
          (for [x (range y (+ 2 y))] ^{:key x}
            [modal-window-button (slot x) (prompt x)])
-         [:div.col-sm]])])))
+         [:div.col-sm]])])]))
 
 (defn xp-input [value]
   [:input {:type "number"
@@ -309,9 +312,9 @@
 
    [reagent-modals/modal-window]
 
-   (if (= (:class @app-state) "Warlock") (show-feature-slots 0) (show-feature-slots 1))
-   (show-fighting-styles)
-   (show-invocations)
+   (if (= (:class @app-state) "Warlock") [show-feature-slots 0] [show-feature-slots 1])
+   [show-fighting-styles]
+   [show-invocations]
 
    [:div-row
     [:div.display "XP on Features: " (:xp-features @app-state)]
@@ -327,7 +330,7 @@
    [nav]
    [:div.display {:style {:background-color "rgba(39,56,76,0.82)" :width "20rem"
                           :padding "1rem" :opacity "20%"}} "Select Packs"
-    (let [save (.setItem (.-localStorage js/window) "packs" (-> @app-state :packs clj->js))]
+    (let [save (fn [] (.setItem (.-localStorage js/window) "packs" (-> @app-state :packs clj->js)))]
       (doall (for [pack packs]
                [:div {:key pack} [:label.display pack [:input.box
                                                        {:type "checkbox" :defaultChecked (if (some #{pack} (-> @app-state :packs)) true false)
