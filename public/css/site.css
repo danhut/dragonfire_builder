@@ -86,6 +86,19 @@ body {
  text-align: center;
 }
 
+.load {
+ position: relative;
+ opacity: 0.75;
+ width: 100.3%;
+ height: 3.875rem;
+ left: 1.5625rem;
+ margin: 0rem -1.58rem;
+ background: #E3DEDA;
+ border-style: double;
+ color: black;
+ text-align: center;
+}
+
 .topnav {
   position: absolute;
   z-index: 10;

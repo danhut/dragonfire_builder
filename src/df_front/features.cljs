@@ -393,7 +393,7 @@
 (def colour-map  {"Martial" "Black"
                   "Devotion" "DarkGreen"
                   "Arcane" "MediumBlue"
-                  "Deception" "DarkGreen"})
+                  "Deception" "DarkRed"})
 
 (def paths {"Fighter" ["Champion" "Eldritch Knight"]
             "Rogue" ["Arcane Trickster" "Thief"]

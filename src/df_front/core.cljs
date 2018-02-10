@@ -12,16 +12,16 @@
   (:import goog.History))
 
 ;; Initialise App Data
-(defonce app-state (r/atom {:xp-earned nil :xp-used 0 :xp-slots 0 :xp-features 0
+(defonce app-state (r/atom {:xp-earned 0 :xp-used 0 :xp-slots 0 :xp-features 0
                             :xp-filter false
                             :class "Fighter"
                             :archetype "Martial"
                             :archetype-bonus nil
-                            :race "Forest Gnome"
-                            :path nil
+                            :race "Human"
                             :packs (let [pax (js->clj (.getItem (.-localStorage js/window) "packs"))]
                                      (if (nil? pax) packs (s/split pax #",")))
                             :slot-cost {:slot0 0 :slot1 0 :slot2 5 :slot3 10 :slot4 15 :slot5 25 :slot6 40}
+                            :name nil
                             :slot0 nil :slot1 nil :slot2 nil :slot3 nil :slot4 nil :slot5 nil :slot6 nil :fighting1 nil :fighting2 nil
                             :invocation1 nil :invocation2 nil :invocation3 nil :invocation4 nil}))
 
@@ -140,6 +140,63 @@
   [:span [:input {:type "button" :value "Reset Features" :class "btn-primary"
                   :on-click #(reset-features)}]])
 
+(defn save-build []
+  (let [build-keys (conj slot-list :name :class :race :xp-earned :archetype)
+        build (select-keys @app-state build-keys)
+        old-builds (-> (.getItem (.-localStorage js/window) "builds") js/JSON.parse (js->clj :keywordize-keys true))
+        name (or (:name @app-state) "Nameless")
+        build-map (merge old-builds {name build})]
+    (.setItem (.-localStorage js/window) "builds" (-> build-map clj->js js/JSON.stringify))))
+
+(defn save-build-btn
+  "Renders a button to save the build keyed from character name"
+  []
+  [:span.tab [:input {:type "button" :value "Save" :class "btn-primary"
+                  :on-click #(save-build)}]])
+
+(defn load-build [build]
+  (doseq [item build]
+   (swap! app-state assoc (key item) (val item))))
+
+(defn build-select
+  "Builds the view of a given build save on modal"
+  [build]
+  (let [inner (second build)]
+    [:div.load
+     {:style {:background-color (-> inner :archetype colour-map)}
+      :on-click (fn [inner] (load-build (second build))
+                  (reagent-modals/close-modal!)
+                  (update-used-xp)
+                  (update-archetypes))}
+     [:div.title {:style {:color "white"}} (-> inner :name)]
+     [:div.req {:style {:color "white"}} (-> inner :race) " " (-> inner :class) " - XP:" (-> inner :xp-earned)]]))
+
+(defn get-builds []
+  (-> (.getItem (.-localStorage js/window) "builds") js/JSON.parse (js->clj :keywordize-keys true)))
+
+(defn load-build-btn
+  "Renders a button to load the build keyed from character name"
+  []
+  [:span.tab [:input {:type "button" :value "Load" :class "btn-primary"
+                      :on-click #(reagent-modals/modal! (into [:div {:style {:background "black"}}]
+                                                              (for [b (get-builds)] [build-select b])))}]])
+
+(defn delete-build []
+  (let [builds (-> (.getItem (.-localStorage js/window) "builds") js/JSON.parse (js->clj :keywordize-keys true))
+        name (keyword (or (:name @app-state) "Nameless"))
+        build-map (dissoc builds name)]
+    (.setItem (.-localStorage js/window) "builds" (-> build-map clj->js js/JSON.stringify))
+    (reset-features)
+    (update-used-xp)
+    (update-archetypes)
+    (swap! app-state assoc :name nil)))
+
+(defn delete-build-btn
+  "Renders a button to delete the build keyed from character name"
+  []
+  [:span.tab [:input {:type "button" :value "Delete" :class "btn-primary"
+                      :on-click #(delete-build)}]])
+
 (defn kw->str [kw]
   (s/capitalize (name kw)))
 
@@ -198,14 +255,16 @@
     (map :race (filter #(= class (:class %)) valid-packs))))
 
 (defn class-select []
-  [:select.filter {:name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
+  [:select.filter {:value (-> @app-state :class)
+                   :name "class" :on-change (fn [e] (swap! app-state assoc :class (-> e .-target .-value))
                                        (swap! app-state assoc :archetype (get-in archetypes [(:class @app-state)]))
                                        (reset-features))}
-   (for [c classes]
-     [:option {:key c} c])])
+   (doall (for [c classes]
+     [:option {:key c} c]))])
 
 (defn race-select []
-  [:select.filter {:name "race" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
+  [:select.filter {:value (-> @app-state :race)
+                   :name "race" :on-change (fn [e] (swap! app-state assoc :race (-> e .-target .-value))
                                        (reset-features))}
    (doall (for [r (-> @app-state :class get-races)]
      [:option {:key r} r]))])
@@ -274,17 +333,21 @@
          [:div.col-sm]])])]))
 
 (defn xp-input [value]
+  "Render earned XP entry box"
   [:input {:type "number"
-           :placeholder "Enter XP"
+           :style {:line-height "0.8rem"}
+           :placeholder "Earned XP"
            :max-length 4
            :id "xp-filter"
            :value (-> @app-state :xp-earned)
            :on-change #(swap! app-state assoc :xp-earned (-> % .-target .-value))}])
 
 (defn get-xp []
+  "Render earned XP entry box taking existing value from state"
   [:span.display.tab [xp-input (-> @app-state :xp-earned)]])
 
 (defn filter-on-xp? []
+  "Render a checkbox enabling filtering on earned XP"
   [:span.display.tab [:label "Filter on XP?" [:input.box
                                               {:type "checkbox"
                                                :value true
@@ -292,6 +355,17 @@
                                                              (swap! app-state assoc :xp-filter nil)
                                                              (swap! app-state assoc :xp-filter
                                                                     (-> % .-target .-value)))}]]])
+
+(defn name-input [value]
+  "Render a box for character name entry"
+  [:input {:type "text"
+           :style {:line-height "0.8rem"}
+           :placeholder "Name"
+           :max-length 20
+           :id "char-name"
+           :value (-> @app-state :name)
+           :on-change #(swap! app-state assoc :name(-> % .-target .-value))}])
+
 ; Nav Bar
 (defn nav
   []
@@ -305,7 +379,7 @@
   []
   [:div.container
    [nav]
-   [:div-row [class-select] "    " [race-select] "      "
+   [:div-row [name-input] "     " [class-select] "    " [race-select] "      "
     (when (check-feature "Circle of the Land")
       [:span.display "Circle of the Land: " [arch-select]])
     [filter-on-xp?] (when (:xp-filter @app-state) [get-xp])]
@@ -320,7 +394,7 @@
     [:div.display "XP on Features: " (:xp-features @app-state)]
     [:div.display "XP on Slots: " (:xp-slots @app-state)]
     [:div.display "Total XP Used: " (:xp-used @app-state)]
-    [:div [reset-feature-btn] [print-btn] [export-to-text]]]
+    [:div [reset-feature-btn] [load-build-btn] [save-build-btn] [delete-build-btn] [print-btn] [export-to-text]]]
    [:br] [:div.foot "© Dungeons & Dragons, Dragonfire, Wizards of the Coast, and their respective logos are trademarks of Wizards of the Coast LLC in the U.S.A. and other countries\n
       Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions.\n"]])
 
