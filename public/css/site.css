@@ -94,7 +94,8 @@ body {
  left: 1.5625rem;
  margin: 0rem -1.58rem;
  background: #E3DEDA;
- border-style: double;
+ border-style: solid;
+ border-color: white;
  color: black;
  text-align: center;
 }
