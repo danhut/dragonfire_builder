@@ -382,7 +382,22 @@
    ["Ranger's Companion","35","Ranger Class & Beastmaster","During your turn, reveal the top card of your deck. If it is a Basic card, play it; otherwise discard it.",1,"Chaos In The Trollclaws",3  ],
    ["Ranger's Companion II","50","Ranger Class & Beastmaster","During your turn, reveal the top card of your deck. If it is a Basic card, play it; otherwise you may discard it or bury it.",1,"Chaos In The Trollclaws",3  ],
    ["Bestial Fury","25","Ranger Class & Beastmaster","Activate Ranger's Companion twice per turn.",1,"Chaos In The Trollclaws",3  ],
-   ["Bestial Fury II","50","Ranger Class & Beastmaster","Activate Ranger's Companion twice per turn.",1,"Chaos In The Trollclaws",3  ]])
+   ["Bestial Fury II","50","Ranger Class & Beastmaster","Activate Ranger's Companion twice per turn.",1,"Chaos In The Trollclaws",3  ],
+   ["Wild Shape","Druid Class","Once per Scene: If you play no cards during your turn, deal (G)(1) and you take no damage.","25 XP"1,"Sea of Swords",3  ],
+   ["Wild Shape II","Druid Class","Once per Scene: If you play no cards during your turn, deal (G)(G)(1) and you take no damage.","50 XP",1,"Sea of Swords",2  ],
+   ["Wild Shape III","Druid Class","Once per Scene: If you play no cards during your turn, deal (G)(G)(G)(1) and you take no damage. Additionally, move one encounter to face you.","100 XP",1,"Sea of Swords",1  ],
+   ["Druidic","Druid Class","During your turn, any other player with Druidic may play one card as if it had Assist.","10 XP",1,"Sea of Swords",2  ],
+   ["Circle of the Land","Druid Class","Permanently choose a Class Type to be your Chosen Type: __________. Equipment Pack: You must remove one (G) card and add one Basic card of the Chosen Type.","10 XP",1,"Sea of Swords",2  ],
+   ["Bonus Grace","Druid Class & Circle of the Land","If you played no (G) cards on your turn, deal (G).","10 XP",1,"Sea of Swords",2  ],
+   ["Natural Recovery","Druid Class & Circle of the Land","During a Short Rest: Shuffle one card from your discard into your deck.","10 XP",1,"Sea of Swords",2  ],
+   ["Nature's Sanctuary","Druid Class & Circle of the Land","When a card you played deals damage to an encounter whose color matches the Chosen Type, it must Save. Failure: That encounter must skip its next attack.","30 XP",1,"Sea of Swords",2  ],
+   ["Nature's Sanctuary II","Druid Class & Circle of the Land","When a card you played deals damage to an encounter whose color matches the Chosen Type, it must Save. Failure: That encounter must skip its next attack. Every card dealing damage to it this turn deals +(1).","100 XP",1,"Sea of Swords",2  ],
+   ["Druidic","Druid Class","During your turn, any other player with Druidic may play one card as if it had Assist.","10 XP",1,"Sea of Swords",3  ],
+   ["Circle of the Moon","Druid Class","Increase your starting HP by 1. Equipment Pack: You must remove one (G) card and add either one (M) or one (D) card.","20 XP",1,"Sea of Swords",3  ],
+   ["Combat Shape","Druid Class & Circle of the Moon","When you activate Wild Shape, discard two cards to heal 1 HP.","15 XP",1,"Sea of Swords",3  ],
+   ["Primal Strike","Druid Class & Circle of the Moon","Wild Shape deals +(2).","30 XP",1,"Sea of Swords",3  ],
+   ["Elemental Shape","Druid Class & Circle of the Moon","Wild Shape deals +(1). Additionally, exchange all of Wild Shape's (G) for (G), (A), (M), or (D).","50 XP",1,"Sea of Swords",3  ],
+   ["Thousand Forms","Druid Class & Circle of the Moon","Activate Wild Shape twice per Scene.","100 XP",1,"Sea of Swords",3  ]])
 
 ;; Data
 (def feature-map (distinct (map #(dissoc (zipmap titles %) :sticker :count) features)))
@@ -460,7 +475,10 @@
    ["Martial","Ranger","Half-Orc",3,4,9,2,4,1,1,"","Relentless Endurance: When Stunned, do not discard hand.",3,"1","1",4,"Chaos In The Trollclaws","",""  ],
    ["Martial","Ranger","Half-Elf",3,4,7,2,3,1,1,"","Versatility (Add 1 Market Slot)",3,"1","1",4,"Chaos In The Trollclaws","",""  ],
    ["Arcane","Warlock","Moon Elf",3,5,6,2,0,4,2,"","Researcher: Once per game, replace one existing Market card with a card from the Market Deck discard.\nKeen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",3,"1, Any Light Armor","0",5,"Shadows Over Dragonspear","",""  ],
-   ["Arcane","Warlock","Lightfoot Halfling",4,4,4,2,0,3,2,"Affable","Nimbleness: Choose one encounter attacking you in the first round of a scene.  It deals no damage.\nResearcher: Once per game, replace one existing Market card with a card from the Market Deck discard.",3,"1, Any Light Armor","0",5,"Shadows Over Dragonspear","",""  ]])
+   ["Arcane","Warlock","Lightfoot Halfling",4,4,4,2,0,3,2,"Affable","Nimbleness: Choose one encounter attacking you in the first round of a scene.  It deals no damage.\nResearcher: Once per game, replace one existing Market card with a card from the Market Deck discard.",3,"1, Any Light Armor","0",5,"Shadows Over Dragonspear","",""  ]
+   ["Devotion","Druid","Tiefling",5,2,8,4,1,2,1,"","INFERNAL LEGACY [Level 3]: Once per Scene, upon taking damage, discard Arcane to apply 1 level of damage to that encounter.",3,1,1,4,"Sea of Swords","1/2","",1  ],
+   ["Devotion","Druid","Gold Dwarf",5,2,9,4,2,1,1,"","",3,1,1,4,"Sea of Swords","2/2","",1  ]
+   ])
 
 (def character-map (->> characters (map #(zipmap char-titles %)) distinct))
 
@@ -468,4 +486,4 @@
 
 (def archetypes (->> character-map (map #(select-keys % [:class :role])) distinct (map vals) flatten (apply hash-map)))
 
-(def packs (->> character-map (map #(:source %)) distinct))
+(def packs (->> character-map (map :source) distinct))

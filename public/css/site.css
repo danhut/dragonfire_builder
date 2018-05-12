@@ -37,8 +37,8 @@ body {
 
 .xp {
   position:absolute;
-  width:6.25rem;
-  left:8.75rem;
+  width:30%;
+  left:33%;
   top:7.5rem;
   font-size: 0.875rem;
   text-align: center;
@@ -111,10 +111,6 @@ body {
   font-size: 1rem;
   border-bottom: 0.05rem solid rgba(39,56,76,0.9);
   background-color: rgba(39,56,76,0.82);
-}
-
-.mod {
-  left: 10.4rem;
 }
 
 .foot {

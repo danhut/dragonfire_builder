@@ -9,10 +9,12 @@
                  [org.clojars.frozenlock/reagent-modals "0.2.3"]
                  [reagent "0.7.0"]
                  [secretary "1.2.3"]
-                 [cljsjs/clipboard "1.6.1-1"]]
+                 [cljsjs/clipboard "1.6.1-1"]
+                 [garden "1.3.3"]]
 
   :plugins [[lein-cljsbuild "1.1.5"]
-            [lein-figwheel "0.5.14"]]
+            [lein-figwheel "0.5.14"]
+            [lein-kibit "0.1.6-beta2"]]
 
   :min-lein-version "2.5.0"
 
