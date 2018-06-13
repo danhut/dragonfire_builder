@@ -34,9 +34,9 @@
                        {:source-paths ["src" "env/dev/cljs"]
                         :compiler
                         {:main "df-front.dev"
-                         :output-to "public/js/app.js"
-                         :output-dir "public/js/out"
-                         :asset-path   "js/out"
+                         :output-to "public/cljs/app.js"
+                         :output-dir "public/cljs/out"
+                         :asset-path   "cljs/out"
                          :externs ["cljs/clipboard.js"]
                          :source-map true
                          :optimizations :none

@@ -309,7 +309,7 @@
           (for [a (keys colour-map)]
             [:option {:key a} a])]]))))
 
-   (defn modal-window-button
+(defn modal-window-button
   "Renders the feature slots on screen"
   ([slot prompt]
    (let [role (r/cursor app-state [:archetype])

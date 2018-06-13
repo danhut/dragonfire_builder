@@ -477,7 +477,9 @@
    ["Arcane","Warlock","Moon Elf",3,5,6,2,0,4,2,"","Researcher: Once per game, replace one existing Market card with a card from the Market Deck discard.\nKeen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",3,"1, Any Light Armor","0",5,"Shadows Over Dragonspear","",""  ],
    ["Arcane","Warlock","Lightfoot Halfling",4,4,4,2,0,3,2,"Affable","Nimbleness: Choose one encounter attacking you in the first round of a scene.  It deals no damage.\nResearcher: Once per game, replace one existing Market card with a card from the Market Deck discard.",3,"1, Any Light Armor","0",5,"Shadows Over Dragonspear","",""  ]
    ["Devotion","Druid","Tiefling",5,2,8,4,1,2,1,"","INFERNAL LEGACY [Level 3]: Once per Scene, upon taking damage, discard Arcane to apply 1 level of damage to that encounter.",3,1,1,4,"Sea of Swords","1/2","",1  ],
-   ["Devotion","Druid","Gold Dwarf",5,2,9,4,2,1,1,"","",3,1,1,4,"Sea of Swords","2/2","",1  ]
+   ["Devotion","Druid","Gold Dwarf",5,2,9,4,2,1,1,"","",3,1,1,4,"Sea of Swords","2/2","",1]
+   ["Martial","Ranger","Wood Elf",4,3,8,1,4,1,2,"","Keen Senses (Make Skill Check. Success: Shift Surprise effect one player to the left.)",3,"1","1",4,"Game Trade Magazine #220","",2]
+   ["Martial","Ranger","Lizardfolk",4,4,8,2,5,1,1,"","Hunter’s Lore (Nature): During a Short Rest make a Skill Check.  Success: Look at the top Primary Encounter card. You may bury it.",3,"1","1",4,"Game Trade Magazine #220","",2]
    ])
 
 (def character-map (->> characters (map #(zipmap char-titles %)) distinct))
